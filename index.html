@@ -84,14 +84,11 @@ td input,td select{padding:5px 7px}
   <div class="box">
     <h2>💍 Sign in</h2>
     <p class="sub">Log in to your shared wedding planner.</p>
-    <input type="email" id="authEmail" placeholder="Email" autocomplete="username">
-    <input type="password" id="authPass" placeholder="Password" autocomplete="current-password">
-    <div class="err" id="authErr"></div>
     <div class="row">
-      <button class="btn" style="flex:1" onclick="doLogin('signin')">Sign in</button>
-      <button class="btn ghost" style="flex:1" onclick="doLogin('signup')">Create account</button>
+      <button class="btn" style="flex:1" onclick="doLogin()">Continue with Google</button>
     </div>
-    <p class="hint">First time? Use <b>Create account</b> once, then ask the admin to allow your account in the database rules. After that, use <b>Sign in</b>.</p>
+    <div class="err" id="authErr"></div>
+    <p class="hint">Sign in with your Google account. First time? Just sign in once, then the admin adds your account to the database rules so you can access the data.</p>
   </div>
 </div>
 
@@ -302,12 +299,10 @@ function startSync(){
 }
 function showGate(){var g=el("authGate");if(g)g.style.display="flex";}
 function hideGate(){var g=el("authGate");if(g)g.style.display="none";}
-function doLogin(mode){
-  var email=el("authEmail").value.trim(),pass=el("authPass").value;
+function doLogin(){
   el("authErr").textContent="";
-  if(!email||!pass){el("authErr").textContent="Enter email and password.";return;}
-  var fn=mode==="signup"?"createUserWithEmailAndPassword":"signInWithEmailAndPassword";
-  firebase.auth()[fn](email,pass).catch(function(e){el("authErr").textContent=e.message;});
+  var provider=new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider).catch(function(e){el("authErr").textContent=e.message;});
 }
 function doLogout(){
   if(typeof firebase==="undefined"||!firebase.apps.length)return;
