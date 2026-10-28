@@ -30,8 +30,10 @@ nav button{white-space:nowrap;border:none;background:transparent;color:var(--mut
   cursor:pointer;font-size:14px;font-weight:500}
 nav button.active{background:var(--accent-soft);color:var(--accent)}
 main{max-width:1536px;width:92%;margin:0 auto;padding:18px}
-#seserahanTable th:nth-child(1),#seserahanTable td:nth-child(1){min-width:240px}
-#seserahanTable th:nth-child(2),#seserahanTable td:nth-child(2){width:56px}
+#seserahanTable th:nth-child(1),#seserahanTable td:nth-child(1),
+#ceremonyTable th:nth-child(1),#ceremonyTable td:nth-child(1){min-width:240px}
+#seserahanTable th:nth-child(2),#seserahanTable td:nth-child(2),
+#ceremonyTable th:nth-child(2),#ceremonyTable td:nth-child(2){width:56px}
 .tab{display:none}.tab.active{display:block}
 h2{font-size:18px;margin:0 0 4px}
 .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
@@ -122,13 +124,12 @@ td input,td select{padding:5px 7px}
   <!-- BUDGET -->
   <section class="tab" data-tab="budget">
     <h2>Budget (IDR)</h2>
-    <p class="sub">Line items by category. Estimated vs actual, and what's paid.</p>
+    <p class="sub">Total allocation rolled up from the Wedding Ceremony and Seserahan tabs. Add or edit items on those tabs — this view is read-only.</p>
     <div class="cards" id="budgetCards"></div>
-    <label style="display:block;margin:0 0 12px;max-width:260px">Total budget (Rp)
+    <label style="display:block;margin:0 0 16px;max-width:260px">Total budget / target (Rp)
       <input type="number" id="totalBudget" placeholder="0"></label>
     <div class="panel">
       <table id="budgetTable"></table>
-      <div class="toolbar"><button class="btn sm" onclick="addRow('budget')">+ Add line item</button></div>
     </div>
   </section>
 
@@ -195,6 +196,17 @@ td input,td select{padding:5px 7px}
     </div>
   </section>
 
+  <!-- WEDDING CEREMONY -->
+  <section class="tab" data-tab="ceremony">
+    <h2>Wedding Ceremony</h2>
+    <p class="sub">All ceremony &amp; reception costs — venue, catering, decor, MUA, attire, documentation, souvenir, invitations, MC/WO, KUA, mahar &amp; rings. Same tracking as Seserahan.</p>
+    <div class="cards" id="ceremonyCards"></div>
+    <div class="panel">
+      <table id="ceremonyTable"></table>
+      <div class="toolbar"><button class="btn sm" onclick="addRow('ceremony')">+ Add item</button></div>
+    </div>
+  </section>
+
   <!-- RUNDOWN -->
   <section class="tab" data-tab="rundown">
     <h2>Day-of Rundown</h2>
@@ -258,7 +270,7 @@ function load(){
   try{var r=JSON.parse(localStorage.getItem(KEY));if(r&&typeof r==="object")return merge(r);}catch(e){}
   return seed();
 }
-function merge(r){var s=seed();for(var k in s)if(!(k in r))r[k]=s[k];return r;}
+function merge(r){var s=seed();for(var k in s)if(!(k in r))r[k]=s[k];delete r.budget;return r;}
 function save(){
   localStorage.setItem(KEY,JSON.stringify(db));
   cloudPush();
@@ -334,12 +346,11 @@ function seed(){
       {t:"1 wk — Final headcount to caterer, confirm rundown with WO",d:false},
       {t:"Day-of — Relax and enjoy 🎉",d:false}
     ],
-    budget:[
-      ["Venue / Gedung","","","no"],["Catering","","","no"],["Wedding Organizer (WO)","","","no"],
-      ["MUA (makeup & hair)","","","no"],["Dekorasi","","","no"],["Fotografi & Videografi","","","no"],
-      ["Busana Pengantin","","","no"],["Undangan","","","no"],["Souvenir / Hampers","","","no"],
-      ["Mahar / Mas Kawin","","","no"],["Seserahan","","","no"],["Hiburan","","","no"],
-      ["Dokumen / Administrasi","","","no"],["Lain-lain","","","no"]
+    ceremony:[
+      ["Venue / Gedung","1","","","no","",""],["Catering","1","","","no","",""],["Wedding Organizer (WO)","1","","","no","",""],
+      ["MUA (makeup & hair)","1","","","no","",""],["Dekorasi","1","","","no","",""],["Fotografi & Videografi","1","","","no","",""],
+      ["Busana Pengantin","1","","","no","",""],["Undangan","1","","","no","",""],["Souvenir / Hampers","1","","","no","",""],
+      ["Mahar & Cincin","1","","","no","",""],["Dokumen / KUA","1","","","no","",""],["Lain-lain","1","","","no","",""]
     ],
     guests:[],
     vendors:[],
@@ -377,8 +388,8 @@ function el(id){return document.getElementById(id);}
 function esc(s){return String(s==null?"":s);}
 
 /* ---------- tabs ---------- */
-var TABS=[["overview","Overview"],["budget","Budget"],["guests","Guests"],["vendors","Vendors"],
-  ["adat","Adat & Ceremony"],["legal","Legal"],["seserahan","Seserahan & Mahar"],["rundown","Rundown"],["data","Backup"]];
+var TABS=[["overview","Overview"],["budget","Budget"],["ceremony","Wedding Ceremony"],["seserahan","Seserahan & Mahar"],
+  ["guests","Guests"],["vendors","Vendors"],["adat","Adat & Rituals"],["legal","Legal"],["rundown","Rundown"],["data","Backup"]];
 function buildNav(){
   var n=el("nav");
   TABS.forEach(function(t,i){
@@ -397,16 +408,18 @@ function show(name){
 
 /* ---------- table configs ---------- */
 var TABLES={
-  budget:{
-    key:"budget",target:"budgetTable",
+  ceremony:{
+    key:"ceremony",target:"ceremonyTable",
     cols:[
-      {h:"Category",type:"text"},
-      {h:"Estimated",type:"num"},
-      {h:"Actual",type:"num"},
-      {h:"Status",type:"select",opts:["no","DP","lunas"]}
+      {h:"Item",type:"text"},
+      {h:"Qty",type:"text"},
+      {h:"Unit price",type:"num"},
+      {h:"Vendor",type:"text"},
+      {h:"Paid",type:"select",opts:["no","yes"]},
+      {h:"Notes",type:"text"},
+      {h:"Marketplace link",type:"link"}
     ],
-    labels:{no:"Not paid",DP:"DP paid",lunas:"Lunas (full)"},
-    after:renderBudgetCards
+    after:renderCeremonyCards
   },
   guests:{
     key:"guests",target:"guestTable",
@@ -511,15 +524,31 @@ function delCheck(key,i){db[key].splice(i,1);save();renderChecks(key,key+"List")
 
 /* ---------- summary cards ---------- */
 function sumCol(key,ci){return db[key].reduce(function(a,r){return a+(Number(r[ci])||0);},0);}
-function renderBudgetCards(){
-  var est=sumCol("budget",1),act=sumCol("budget",2),total=Number(db.totalBudget)||0;
-  var paid=db.budget.reduce(function(a,r){return a+(r[3]==="lunas"?(Number(r[2])||0):0);},0);
+function sectionStats(key){
+  var rows=db[key]||[];
+  var line=function(r){return (Number(r[2])||0)*(Number(r[1])||1);};
+  var total=rows.reduce(function(a,r){return a+line(r);},0);
+  var paid=rows.reduce(function(a,r){return a+(r[4]==="yes"?line(r):0);},0);
+  return {items:rows.length,total:total,paid:paid,outstanding:total-paid};
+}
+function renderBudget(){
+  var cer=sectionStats("ceremony"),ses=sectionStats("seserahan");
+  var allocated=cer.total+ses.total,paid=cer.paid+ses.paid,target=Number(db.totalBudget)||0;
   card("budgetCards",[
-    ["Total budget",rp(total)],
-    ["Estimated",rp(est)],
-    ["Actual spent",rp(act)],
-    ["Remaining",rp(total-act)]
+    ["Total budget",rp(target)],
+    ["Allocated",rp(allocated)],
+    ["Paid",rp(paid)],
+    [target?"Budget left":"Outstanding",rp(target?target-allocated:allocated-paid)]
   ]);
+  var t=el("budgetTable");if(!t)return;
+  var row=function(name,s){
+    return "<tr><td>"+name+"</td><td class='num'>"+s.items+"</td><td class='num'>"+rp(s.total)
+      +"</td><td class='num'>"+rp(s.paid)+"</td><td class='num'>"+rp(s.outstanding)+"</td></tr>";
+  };
+  t.innerHTML="<tr><th>Section</th><th class='num'>Items</th><th class='num'>Allocated</th><th class='num'>Paid</th><th class='num'>Outstanding</th></tr>"
+    +row("Wedding Ceremony",cer)+row("Seserahan",ses)
+    +"<tr style='font-weight:600'><td>Total</td><td class='num'>"+(cer.items+ses.items)+"</td><td class='num'>"+rp(allocated)
+    +"</td><td class='num'>"+rp(paid)+"</td><td class='num'>"+rp(allocated-paid)+"</td></tr>";
 }
 function renderGuestCards(){
   var g=db.guests,inv=g.reduce(function(a,r){return a+(Number(r[3])||0);},0);
@@ -527,13 +556,13 @@ function renderGuestCards(){
   var no=g.filter(function(r){return r[4]==="No";}).length;
   card("guestCards",[["Parties",String(g.length)],["Invited (pax)",String(inv)],["RSVP Yes",String(yes)],["RSVP No",String(no)]]);
 }
-function renderSeserahanCards(){
-  var rows=db.seserahan;
-  var line=function(r){return (Number(r[2])||0)*(Number(r[1])||1);};
-  var total=rows.reduce(function(a,r){return a+line(r);},0);
-  var bought=rows.reduce(function(a,r){return a+(r[4]==="yes"?line(r):0);},0);
-  card("seserahanCards",[["Items",String(rows.length)],["Total cost",rp(total)],["Bought",rp(bought)],["Remaining",rp(total-bought)]]);
+function renderItemCards(target,key,paidLabel){
+  var s=sectionStats(key);
+  card(target,[["Items",String(s.items)],["Total cost",rp(s.total)],[paidLabel,rp(s.paid)],["Remaining",rp(s.outstanding)]]);
+  renderBudget();
 }
+function renderSeserahanCards(){renderItemCards("seserahanCards","seserahan","Bought");}
+function renderCeremonyCards(){renderItemCards("ceremonyCards","ceremony","Paid");}
 function renderVendorCards(){
   var v=db.vendors,quote=sumCol("vendors",3),dp=sumCol("vendors",4);
   var booked=v.filter(function(r){return r[5]==="yes";}).length;
@@ -541,12 +570,13 @@ function renderVendorCards(){
 }
 function renderOverviewCards(){
   var done=db.timeline.filter(function(x){return x.d;}).length;
-  var total=Number(db.totalBudget)||0,act=sumCol("budget",2);
+  var total=Number(db.totalBudget)||0;
+  var allocated=sectionStats("ceremony").total+sectionStats("seserahan").total;
   var inv=db.guests.reduce(function(a,r){return a+(Number(r[3])||0);},0);
   card("overviewCards",[
     ["Milestones done",done+" / "+db.timeline.length],
     ["Budget",rp(total)],
-    ["Spent",rp(act)],
+    ["Allocated",rp(allocated)],
     ["Guests invited",String(inv)]
   ]);
 }
@@ -601,7 +631,7 @@ document.addEventListener("input",function(ev){
   if(t.dataset.k!=null){
     db[t.dataset.k][t.dataset.r][t.dataset.c]=t.value;save();
     var cfg=TABLES[t.dataset.k];if(cfg&&cfg.after)cfg.after();
-    if(t.dataset.k==="budget"||t.dataset.k==="guests")renderOverviewCards();
+    if(t.dataset.k==="ceremony"||t.dataset.k==="seserahan"||t.dataset.k==="guests")renderOverviewCards();
   }
 });
 document.addEventListener("change",function(ev){
@@ -618,6 +648,7 @@ function renderAll(){
   el("wdate").value=db.wdate||"";el("totalBudget").value=db.totalBudget||"";el("mahar").value=db.mahar||"";
   renderCountdown();
   for(var k in TABLES)renderTable(TABLES[k]);
+  renderBudget();
   renderChecks("timeline","timeline");
   renderChecks("adat","adatList");
   renderChecks("legal","legalList");
@@ -626,7 +657,7 @@ function renderAll(){
 function init(){
   bindField("p1","p1");bindField("p2","p2");
   bindField("wdate","wdate",renderCountdown);
-  bindField("totalBudget","totalBudget",function(){renderBudgetCards();renderOverviewCards();});
+  bindField("totalBudget","totalBudget",function(){renderBudget();renderOverviewCards();});
   bindField("mahar","mahar");
   renderAll();
   cloudInit();
