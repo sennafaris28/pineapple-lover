@@ -25,15 +25,17 @@ header h1{margin:0 0 6px;font-size:22px;font-weight:600}
 .date-row{margin-top:10px;display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:14px}
 .countdown{font-weight:600;color:var(--accent);font-size:18px}
 nav{display:flex;gap:4px;overflow-x:auto;padding:10px 12px;background:var(--panel);border-bottom:1px solid var(--line);
-  position:sticky;top:0;z-index:5}
+  position:sticky;top:0;z-index:5;justify-content:safe center}
 nav button{white-space:nowrap;border:none;background:transparent;color:var(--muted);padding:8px 12px;border-radius:8px;
   cursor:pointer;font-size:14px;font-weight:500}
 nav button.active{background:var(--accent-soft);color:var(--accent)}
 main{max-width:1536px;width:92%;margin:0 auto;padding:18px}
 #seserahanTable th:nth-child(1),#seserahanTable td:nth-child(1),
-#ceremonyTable th:nth-child(1),#ceremonyTable td:nth-child(1){min-width:240px}
+#ceremonyTable th:nth-child(1),#ceremonyTable td:nth-child(1),
+#maharTable th:nth-child(1),#maharTable td:nth-child(1){min-width:240px}
 #seserahanTable th:nth-child(2),#seserahanTable td:nth-child(2),
-#ceremonyTable th:nth-child(2),#ceremonyTable td:nth-child(2){width:56px}
+#ceremonyTable th:nth-child(2),#ceremonyTable td:nth-child(2),
+#maharTable th:nth-child(2),#maharTable td:nth-child(2){width:56px}
 .tab{display:none}.tab.active{display:block}
 h2{font-size:18px;margin:0 0 4px}
 .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
@@ -183,16 +185,27 @@ td input,td select{padding:5px 7px}
 
   <!-- SESERAHAN -->
   <section class="tab" data-tab="seserahan">
-    <h2>Seserahan &amp; Mahar</h2>
-    <p class="sub">Hantaran/seserahan items and the agreed mahar (mas kawin).</p>
-    <div class="panel" style="margin-bottom:16px">
-      <label style="display:block;max-width:420px">Mahar / Mas Kawin
-        <input id="mahar" placeholder="e.g. 10 grams gold + cash Rp 500.000 + prayer set"></label>
-    </div>
+    <h2>Seserahan</h2>
+    <p class="sub">Hantaran / seserahan gift items for the bride.</p>
     <div class="cards" id="seserahanCards"></div>
     <div class="panel">
       <table id="seserahanTable"></table>
       <div class="toolbar"><button class="btn sm" onclick="addRow('seserahan')">+ Add item</button></div>
+    </div>
+  </section>
+
+  <!-- MAHAR & MAS KAWIN -->
+  <section class="tab" data-tab="mahar">
+    <h2>Mahar &amp; Mas Kawin</h2>
+    <p class="sub">The dowry and its components — ring, gold/replica, cash, ring box &amp; keepsake materials.</p>
+    <div class="panel" style="margin-bottom:16px">
+      <label style="display:block;max-width:420px">Agreed mahar (summary)
+        <input id="mahar" placeholder="e.g. 10 grams gold + cash Rp 500.000 + prayer set"></label>
+    </div>
+    <div class="cards" id="maharCards"></div>
+    <div class="panel">
+      <table id="maharTable"></table>
+      <div class="toolbar"><button class="btn sm" onclick="addRow('maharkawin')">+ Add item</button></div>
     </div>
   </section>
 
@@ -355,6 +368,7 @@ function seed(){
     guests:[],
     vendors:[],
     seserahan:[["Hijab / prayer set","1","","","no","",""],["Cosmetics","1 set","","","no","",""],["Shoes","1 pair","","","no","",""],["Sweets / fruits","","","","no","",""]],
+    maharkawin:[["Cincin nikah","1","","","no","",""],["Mahar (emas / replika)","1","","","no","",""],["Uang mahar (cash)","1","","","no","",""],["Ring box / keepsake","1","","","no","",""]],
     rundown:[["08:00","Siraman / prep",""],["09:00","MUA & dressing",""],["10:00","Akad / Pemberkatan",""],["12:00","Lunch",""],["13:00","Resepsi / reception",""],["16:00","Close",""]],
     adat:[
       {t:"Lamaran / Tunangan (proposal & engagement)",d:false},
@@ -388,8 +402,9 @@ function el(id){return document.getElementById(id);}
 function esc(s){return String(s==null?"":s);}
 
 /* ---------- tabs ---------- */
-var TABS=[["overview","Overview"],["budget","Budget"],["ceremony","Wedding Ceremony"],["seserahan","Seserahan & Mahar"],
-  ["guests","Guests"],["vendors","Vendors"],["adat","Adat & Rituals"],["legal","Legal"],["rundown","Rundown"],["data","Backup"]];
+var TABS=[["overview","Overview"],["budget","Budget"],["ceremony","Wedding Ceremony"],["seserahan","Seserahan"],
+  ["mahar","Mahar & Mas Kawin"],["guests","Guests"],["vendors","Vendors"],["adat","Adat & Rituals"],
+  ["legal","Legal"],["rundown","Rundown"],["data","Backup"]];
 function buildNav(){
   var n=el("nav");
   TABS.forEach(function(t,i){
@@ -458,6 +473,19 @@ var TABLES={
       {h:"Marketplace link",type:"link"}
     ],
     after:renderSeserahanCards
+  },
+  maharkawin:{
+    key:"maharkawin",target:"maharTable",
+    cols:[
+      {h:"Item",type:"text"},
+      {h:"Qty",type:"text"},
+      {h:"Unit price",type:"num"},
+      {h:"Vendor",type:"text"},
+      {h:"Bought",type:"select",opts:["no","yes"]},
+      {h:"Notes",type:"text"},
+      {h:"Marketplace link",type:"link"}
+    ],
+    after:renderMaharCards
   },
   rundown:{
     key:"rundown",target:"rundownTable",
@@ -532,8 +560,8 @@ function sectionStats(key){
   return {items:rows.length,total:total,paid:paid,outstanding:total-paid};
 }
 function renderBudget(){
-  var cer=sectionStats("ceremony"),ses=sectionStats("seserahan");
-  var allocated=cer.total+ses.total,paid=cer.paid+ses.paid,target=Number(db.totalBudget)||0;
+  var cer=sectionStats("ceremony"),ses=sectionStats("seserahan"),mah=sectionStats("maharkawin");
+  var allocated=cer.total+ses.total+mah.total,paid=cer.paid+ses.paid+mah.paid,target=Number(db.totalBudget)||0;
   card("budgetCards",[
     ["Total budget",rp(target)],
     ["Allocated",rp(allocated)],
@@ -546,8 +574,8 @@ function renderBudget(){
       +"</td><td class='num'>"+rp(s.paid)+"</td><td class='num'>"+rp(s.outstanding)+"</td></tr>";
   };
   t.innerHTML="<tr><th>Section</th><th class='num'>Items</th><th class='num'>Allocated</th><th class='num'>Paid</th><th class='num'>Outstanding</th></tr>"
-    +row("Wedding Ceremony",cer)+row("Seserahan",ses)
-    +"<tr style='font-weight:600'><td>Total</td><td class='num'>"+(cer.items+ses.items)+"</td><td class='num'>"+rp(allocated)
+    +row("Wedding Ceremony",cer)+row("Seserahan",ses)+row("Mahar & Mas Kawin",mah)
+    +"<tr style='font-weight:600'><td>Total</td><td class='num'>"+(cer.items+ses.items+mah.items)+"</td><td class='num'>"+rp(allocated)
     +"</td><td class='num'>"+rp(paid)+"</td><td class='num'>"+rp(allocated-paid)+"</td></tr>";
 }
 function renderGuestCards(){
@@ -563,6 +591,7 @@ function renderItemCards(target,key,paidLabel){
 }
 function renderSeserahanCards(){renderItemCards("seserahanCards","seserahan","Bought");}
 function renderCeremonyCards(){renderItemCards("ceremonyCards","ceremony","Paid");}
+function renderMaharCards(){renderItemCards("maharCards","maharkawin","Bought");}
 function renderVendorCards(){
   var v=db.vendors,quote=sumCol("vendors",3),dp=sumCol("vendors",4);
   var booked=v.filter(function(r){return r[5]==="yes";}).length;
@@ -571,7 +600,7 @@ function renderVendorCards(){
 function renderOverviewCards(){
   var done=db.timeline.filter(function(x){return x.d;}).length;
   var total=Number(db.totalBudget)||0;
-  var allocated=sectionStats("ceremony").total+sectionStats("seserahan").total;
+  var allocated=sectionStats("ceremony").total+sectionStats("seserahan").total+sectionStats("maharkawin").total;
   var inv=db.guests.reduce(function(a,r){return a+(Number(r[3])||0);},0);
   card("overviewCards",[
     ["Milestones done",done+" / "+db.timeline.length],
@@ -631,7 +660,7 @@ document.addEventListener("input",function(ev){
   if(t.dataset.k!=null){
     db[t.dataset.k][t.dataset.r][t.dataset.c]=t.value;save();
     var cfg=TABLES[t.dataset.k];if(cfg&&cfg.after)cfg.after();
-    if(t.dataset.k==="ceremony"||t.dataset.k==="seserahan"||t.dataset.k==="guests")renderOverviewCards();
+    if(t.dataset.k==="ceremony"||t.dataset.k==="seserahan"||t.dataset.k==="maharkawin"||t.dataset.k==="guests")renderOverviewCards();
   }
 });
 document.addEventListener("change",function(ev){
