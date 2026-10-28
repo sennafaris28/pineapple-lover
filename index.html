@@ -186,6 +186,7 @@ td input,td select{padding:5px 7px}
       <label style="display:block;max-width:420px">Mahar / Mas Kawin
         <input id="mahar" placeholder="e.g. 10 grams gold + cash Rp 500.000 + prayer set"></label>
     </div>
+    <div class="cards" id="seserahanCards"></div>
     <div class="panel">
       <table id="seserahanTable"></table>
       <div class="toolbar"><button class="btn sm" onclick="addRow('seserahan')">+ Add item</button></div>
@@ -340,7 +341,7 @@ function seed(){
     ],
     guests:[],
     vendors:[],
-    seserahan:[["Hijab / prayer set","1","",""],["Cosmetics","1 set","",""],["Shoes","1 pair","",""],["Sweets / fruits","","",""]],
+    seserahan:[["Hijab / prayer set","1","","","no","",""],["Cosmetics","1 set","","","no","",""],["Shoes","1 pair","","","no","",""],["Sweets / fruits","","","","no","",""]],
     rundown:[["08:00","Siraman / prep",""],["09:00","MUA & dressing",""],["10:00","Akad / Pemberkatan",""],["12:00","Lunch",""],["13:00","Resepsi / reception",""],["16:00","Close",""]],
     adat:[
       {t:"Lamaran / Tunangan (proposal & engagement)",d:false},
@@ -432,7 +433,16 @@ var TABLES={
   },
   seserahan:{
     key:"seserahan",target:"seserahanTable",
-    cols:[{h:"Item",type:"text"},{h:"Qty",type:"text"},{h:"Notes",type:"text"},{h:"Marketplace link",type:"link"}]
+    cols:[
+      {h:"Item",type:"text"},
+      {h:"Qty",type:"text"},
+      {h:"Unit price",type:"num"},
+      {h:"Vendor",type:"text"},
+      {h:"Bought",type:"select",opts:["no","yes"]},
+      {h:"Notes",type:"text"},
+      {h:"Marketplace link",type:"link"}
+    ],
+    after:renderSeserahanCards
   },
   rundown:{
     key:"rundown",target:"rundownTable",
@@ -514,6 +524,13 @@ function renderGuestCards(){
   var yes=g.filter(function(r){return r[4]==="Yes";}).length;
   var no=g.filter(function(r){return r[4]==="No";}).length;
   card("guestCards",[["Parties",String(g.length)],["Invited (pax)",String(inv)],["RSVP Yes",String(yes)],["RSVP No",String(no)]]);
+}
+function renderSeserahanCards(){
+  var rows=db.seserahan;
+  var line=function(r){return (Number(r[2])||0)*(Number(r[1])||1);};
+  var total=rows.reduce(function(a,r){return a+line(r);},0);
+  var bought=rows.reduce(function(a,r){return a+(r[4]==="yes"?line(r):0);},0);
+  card("seserahanCards",[["Items",String(rows.length)],["Total cost",rp(total)],["Bought",rp(bought)],["Remaining",rp(total-bought)]]);
 }
 function renderVendorCards(){
   var v=db.vendors,quote=sumCol("vendors",3),dp=sumCol("vendors",4);
