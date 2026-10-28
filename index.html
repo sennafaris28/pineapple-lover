@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wedding Planning Dashboard</title>
+<style>
+:root{
+  --bg:#faf7f5; --panel:#fff; --ink:#2a2420; --muted:#8a7f78; --line:#ebe3dd;
+  --accent:#b5835a; --accent-soft:#f3e7db; --good:#3f8f6b; --warn:#c2674b; --chip:#f0ebe7;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#1b1815; --panel:#262220; --ink:#ece6e1; --muted:#a89d94; --line:#3a332e;
+    --accent:#cd9b6f; --accent-soft:#352c24; --good:#5cb48a; --warn:#e08a6d; --chip:#322b26;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.45;font-size:15px}
+header{padding:20px 18px;text-align:center;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{margin:0 0 6px;font-size:22px;font-weight:600}
+.names{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+.names input{text-align:center}
+.date-row{margin-top:10px;display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:14px}
+.countdown{font-weight:600;color:var(--accent);font-size:18px}
+nav{display:flex;gap:4px;overflow-x:auto;padding:10px 12px;background:var(--panel);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:5}
+nav button{white-space:nowrap;border:none;background:transparent;color:var(--muted);padding:8px 12px;border-radius:8px;
+  cursor:pointer;font-size:14px;font-weight:500}
+nav button.active{background:var(--accent-soft);color:var(--accent)}
+main{max-width:1000px;margin:0 auto;padding:18px}
+.tab{display:none}.tab.active{display:block}
+h2{font-size:18px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+input,select,button{font-family:inherit;font-size:14px;color:var(--ink)}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;width:100%}
+input:focus,select:focus{outline:1px solid var(--accent)}
+table{width:100%;border-collapse:collapse;margin-top:6px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+th{color:var(--muted);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+td input,td select{padding:5px 7px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:500}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.del{background:transparent;border:none;color:var(--warn);cursor:pointer;font-size:16px;padding:2px 6px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card .label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+.card .val{font-size:20px;font-weight:600;margin-top:4px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto}
+.check{list-style:none;padding:0;margin:0}
+.check li{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.check li:last-child{border-bottom:none}
+.check input[type=checkbox]{width:18px;height:18px;margin-top:3px;flex:none;accent-color:var(--accent)}
+.check .body{flex:1}.check .ttl{font-weight:500}
+.check.done .ttl,li.done .ttl{text-decoration:line-through;color:var(--muted)}
+.check .note{color:var(--muted);font-size:13px;margin-top:2px}
+.chip{display:inline-block;background:var(--chip);color:var(--muted);border-radius:20px;padding:2px 9px;font-size:12px;margin-left:6px}
+.group-ttl{font-weight:600;margin:18px 0 2px;color:var(--accent)}
+.foot{text-align:center;color:var(--muted);font-size:12px;padding:24px 16px;border-top:1px solid var(--line);margin-top:20px}
+.pill{border-radius:20px;padding:3px 10px;font-size:12px;font-weight:500;display:inline-block}
+.pill.yes{background:var(--accent-soft);color:var(--good)}
+.pill.no{background:var(--chip);color:var(--muted)}
+.right{margin-left:auto}
+.gate{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.gate .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px;max-width:360px;width:100%}
+.gate h2{margin:0 0 4px}.gate .sub{margin-bottom:16px}
+.gate input{margin:6px 0}
+.gate .err{color:var(--warn);font-size:13px;min-height:18px;margin-top:8px}
+.gate .row{display:flex;gap:8px;margin-top:12px}
+.gate .hint{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.4}
+@media (max-width:620px){
+  body{font-size:14px}
+  th:nth-child(n+4),td:nth-child(n+4){white-space:nowrap}
+  .names input{max-width:120px}
+}
+</style>
+</head>
+<body>
+<div class="gate" id="authGate">
+  <div class="box">
+    <h2>💍 Sign in</h2>
+    <p class="sub">Log in to your shared wedding planner.</p>
+    <input type="email" id="authEmail" placeholder="Email" autocomplete="username">
+    <input type="password" id="authPass" placeholder="Password" autocomplete="current-password">
+    <div class="err" id="authErr"></div>
+    <div class="row">
+      <button class="btn" style="flex:1" onclick="doLogin('signin')">Sign in</button>
+      <button class="btn ghost" style="flex:1" onclick="doLogin('signup')">Create account</button>
+    </div>
+    <p class="hint">First time? Use <b>Create account</b> once, then ask the admin to allow your account in the database rules. After that, use <b>Sign in</b>.</p>
+  </div>
+</div>
+
+<header>
+  <h1>💍 Wedding Planning Dashboard</h1>
+  <div class="names">
+    <input id="p1" placeholder="Partner 1" style="max-width:160px">
+    <span>&amp;</span>
+    <input id="p2" placeholder="Partner 2" style="max-width:160px">
+  </div>
+  <div class="date-row">
+    <label>Wedding date: <input type="date" id="wdate" style="width:auto;display:inline-block"></label>
+    <span class="countdown" id="countdown">—</span>
+    <span class="chip" id="syncStatus" title="Data sync status">💾 Local only</span>
+  </div>
+</header>
+
+<nav id="nav"></nav>
+
+<main>
+  <!-- OVERVIEW -->
+  <section class="tab" data-tab="overview">
+    <h2>Overview &amp; Timeline</h2>
+    <p class="sub">Your countdown and planning milestones. Tick them off as you go.</p>
+    <div class="cards" id="overviewCards"></div>
+    <div class="panel"><ul class="check" id="timeline"></ul></div>
+  </section>
+
+  <!-- BUDGET -->
+  <section class="tab" data-tab="budget">
+    <h2>Budget (IDR)</h2>
+    <p class="sub">Line items by category. Estimated vs actual, and what's paid.</p>
+    <div class="cards" id="budgetCards"></div>
+    <label style="display:block;margin:0 0 12px;max-width:260px">Total budget (Rp)
+      <input type="number" id="totalBudget" placeholder="0"></label>
+    <div class="panel">
+      <table id="budgetTable"></table>
+      <div class="toolbar"><button class="btn sm" onclick="addRow('budget')">+ Add line item</button></div>
+    </div>
+  </section>
+
+  <!-- GUESTS -->
+  <section class="tab" data-tab="guests">
+    <h2>Guest List &amp; RSVP</h2>
+    <p class="sub">Track invites, sides, and RSVP status.</p>
+    <div class="cards" id="guestCards"></div>
+    <div class="panel">
+      <table id="guestTable"></table>
+      <div class="toolbar"><button class="btn sm" onclick="addRow('guests')">+ Add guest</button></div>
+    </div>
+  </section>
+
+  <!-- VENDORS -->
+  <section class="tab" data-tab="vendors">
+    <h2>Vendors</h2>
+    <p class="sub">Quotes, deposits (DP), balances, and booking status.</p>
+    <div class="cards" id="vendorCards"></div>
+    <div class="panel">
+      <table id="vendorTable"></table>
+      <div class="toolbar"><button class="btn sm" onclick="addRow('vendors')">+ Add vendor</button></div>
+    </div>
+  </section>
+
+  <!-- ADAT -->
+  <section class="tab" data-tab="adat">
+    <h2>Adat &amp; Ceremony Checklist</h2>
+    <p class="sub">Customary stages vary by ethnicity (Jawa, Sunda, Batak, Minang, Bali, etc.). Remove what doesn't apply and add your own.</p>
+    <div class="panel">
+      <ul class="check" id="adatList"></ul>
+      <div class="toolbar">
+        <input id="adatNew" placeholder="Add a ceremony/stage..." style="max-width:320px">
+        <button class="btn sm" onclick="addCheck('adat')">+ Add</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEGAL -->
+  <section class="tab" data-tab="legal">
+    <h2>Legal &amp; Administrasi</h2>
+    <p class="sub">Marriage paperwork in Indonesia. Requirements and lead times vary by region &amp; faith — treat as a guide, confirm with your KUA / Dukcapil.</p>
+    <div class="panel">
+      <ul class="check" id="legalList"></ul>
+      <div class="toolbar">
+        <input id="legalNew" placeholder="Add a document/step..." style="max-width:320px">
+        <button class="btn sm" onclick="addCheck('legal')">+ Add</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SESERAHAN -->
+  <section class="tab" data-tab="seserahan">
+    <h2>Seserahan &amp; Mahar</h2>
+    <p class="sub">Hantaran/seserahan items and the agreed mahar (mas kawin).</p>
+    <div class="panel" style="margin-bottom:16px">
+      <label style="display:block;max-width:420px">Mahar / Mas Kawin
+        <input id="mahar" placeholder="e.g. 10 grams gold + cash Rp 500.000 + prayer set"></label>
+    </div>
+    <div class="panel">
+      <table id="seserahanTable"></table>
+      <div class="toolbar"><button class="btn sm" onclick="addRow('seserahan')">+ Add item</button></div>
+    </div>
+  </section>
+
+  <!-- RUNDOWN -->
+  <section class="tab" data-tab="rundown">
+    <h2>Day-of Rundown</h2>
+    <p class="sub">Minute-by-minute schedule for the big day.</p>
+    <div class="panel">
+      <table id="rundownTable"></table>
+      <div class="toolbar"><button class="btn sm" onclick="addRow('rundown')">+ Add slot</button></div>
+    </div>
+  </section>
+
+  <!-- DATA -->
+  <section class="tab" data-tab="data">
+    <h2>Backup &amp; Data</h2>
+    <p class="sub">Everything is saved in your browser (localStorage). Export regularly so you don't lose it.</p>
+    <div class="panel">
+      <div class="toolbar">
+        <button class="btn" onclick="exportData()">⬇ Export (JSON)</button>
+        <button class="btn ghost" onclick="document.getElementById('importFile').click()">⬆ Import (JSON)</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(this)">
+        <button class="btn ghost" onclick="doLogout()">🔓 Sign out</button>
+        <button class="btn ghost right" onclick="resetAll()" style="color:var(--warn);border-color:var(--warn)">🗑 Reset all</button>
+      </div>
+      <p class="sub" style="margin:4px 0 0">Export writes a <code>wedding-data.json</code> file. Import replaces current data.</p>
+    </div>
+  </section>
+</main>
+
+<div class="foot">
+  This dashboard is a general planning guide. Adat customs and legal/administrative requirements differ by ethnicity,
+  faith, and region — always verify current rules with your local KUA, Dukcapil / Catatan Sipil, and family elders.
+</div>
+
+<!-- Firebase SDK (only used when you fill in FIREBASE_CONFIG below; harmless if offline) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+"use strict";
+
+/* ============================================================
+   CLOUD SYNC CONFIG  —  fill these in to turn on online storage
+   (see setup steps). Leave blank to run local-only in this browser.
+   ============================================================ */
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCUt0mzlONnY0w91Bg2UiWBgM8Oz9t3iH4",
+  authDomain: "pineapple-lover.firebaseapp.com",
+  databaseURL: "https://pineapple-lover-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "pineapple-lover",
+  storageBucket: "pineapple-lover.firebasestorage.app",
+  messagingSenderId: "1004730650139",
+  appId: "1:1004730650139:web:bed40a2503a6c4529b72be"
+};
+// Shared workspace id — both of you must use the SAME value. Letters, numbers, dashes only (no . # $ [ ]).
+var WEDDING_ID = "pineapple-wedding";
+/* ============================================================ */
+
+var KEY="weddingDashV1";
+var db=load();
+
+function load(){
+  try{var r=JSON.parse(localStorage.getItem(KEY));if(r&&typeof r==="object")return merge(r);}catch(e){}
+  return seed();
+}
+function merge(r){var s=seed();for(var k in s)if(!(k in r))r[k]=s[k];return r;}
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(db));
+  cloudPush();
+}
+
+/* ---------- cloud sync (Firebase Realtime Database) ---------- */
+var cloud={on:false,ref:null,ready:false,timer:null};
+function setStatus(s){
+  var e=el("syncStatus");if(!e)return;
+  var m={local:"💾 Local only",connecting:"⟳ Connecting…",saving:"⟳ Saving…",synced:"☁ Synced",error:"⚠ Sync error (local saved)"};
+  e.textContent=m[s]||s;
+}
+function cloudInit(){
+  if(!FIREBASE_CONFIG.databaseURL||typeof firebase==="undefined"){setStatus("local");return;}
+  setStatus("connecting");
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    firebase.auth().onAuthStateChanged(function(u){
+      if(u){hideGate();startSync();}
+      else{showGate();setStatus("connecting");}
+    });
+  }catch(e){setStatus("error");}
+}
+function startSync(){
+  if(cloud.ref)return; // already syncing
+  cloud.on=true;
+  cloud.ref=firebase.database().ref("weddings/"+WEDDING_ID);
+  cloud.ref.on("value",function(snap){
+    var remote=snap.val();
+    if(remote){
+      if(JSON.stringify(remote)!==JSON.stringify(db)){
+        db=merge(remote);
+        localStorage.setItem(KEY,JSON.stringify(db));
+        renderAll();
+      }
+    }else{
+      cloud.ref.set(db); // first run: seed the cloud from this device
+    }
+    cloud.ready=true;setStatus("synced");
+  },function(){setStatus("error");el("authErr").textContent="Access denied — ask the admin to allow your account in the database rules.";showGate();});
+}
+function showGate(){var g=el("authGate");if(g)g.style.display="flex";}
+function hideGate(){var g=el("authGate");if(g)g.style.display="none";}
+function doLogin(mode){
+  var email=el("authEmail").value.trim(),pass=el("authPass").value;
+  el("authErr").textContent="";
+  if(!email||!pass){el("authErr").textContent="Enter email and password.";return;}
+  var fn=mode==="signup"?"createUserWithEmailAndPassword":"signInWithEmailAndPassword";
+  firebase.auth()[fn](email,pass).catch(function(e){el("authErr").textContent=e.message;});
+}
+function doLogout(){
+  if(typeof firebase==="undefined"||!firebase.apps.length)return;
+  firebase.auth().signOut();
+}
+function cloudPush(){
+  if(!cloud.on||!cloud.ref||!cloud.ready)return;
+  setStatus("saving");
+  clearTimeout(cloud.timer);
+  cloud.timer=setTimeout(function(){
+    cloud.ref.set(db).then(function(){setStatus("synced");}).catch(function(){setStatus("error");});
+  },400);
+}
+
+function seed(){
+  return {
+    p1:"",p2:"",wdate:"",totalBudget:"",mahar:"",
+    timeline:[
+      {t:"12 mo — Set date, budget & guest-count target",d:false},
+      {t:"12 mo — Book venue/gedung & lock the big date",d:false},
+      {t:"9 mo — Book Wedding Organizer, catering, MUA & photographer",d:false},
+      {t:"6 mo — Decor, attire (busana pengantin), invitations design",d:false},
+      {t:"3 mo — Start legal paperwork (KUA/Simkah or Catatan Sipil)",d:false},
+      {t:"3 mo — Finalize guest list & send invitations",d:false},
+      {t:"1 mo — Confirm all vendors, pay balances, prep seserahan & mahar",d:false},
+      {t:"1 wk — Final headcount to caterer, confirm rundown with WO",d:false},
+      {t:"Day-of — Relax and enjoy 🎉",d:false}
+    ],
+    budget:[
+      ["Venue / Gedung","","","no"],["Catering","","","no"],["Wedding Organizer (WO)","","","no"],
+      ["MUA (makeup & hair)","","","no"],["Dekorasi","","","no"],["Fotografi & Videografi","","","no"],
+      ["Busana Pengantin","","","no"],["Undangan","","","no"],["Souvenir / Hampers","","","no"],
+      ["Mahar / Mas Kawin","","","no"],["Seserahan","","","no"],["Hiburan","","","no"],
+      ["Dokumen / Administrasi","","","no"],["Lain-lain","","","no"]
+    ],
+    guests:[],
+    vendors:[],
+    seserahan:[["Hijab / prayer set","1","",""],["Cosmetics","1 set","",""],["Shoes","1 pair","",""],["Sweets / fruits","","",""]],
+    rundown:[["08:00","Siraman / prep",""],["09:00","MUA & dressing",""],["10:00","Akad / Pemberkatan",""],["12:00","Lunch",""],["13:00","Resepsi / reception",""],["16:00","Close",""]],
+    adat:[
+      {t:"Lamaran / Tunangan (proposal & engagement)",d:false},
+      {t:"Siraman (pre-wedding cleansing ritual)",d:false},
+      {t:"Midodareni (Javanese — night before)",d:false},
+      {t:"Seserahan / Hantaran handover",d:false},
+      {t:"Akad Nikah (Muslim) / Pemberkatan (Christian) / ceremony per your faith",d:false},
+      {t:"Sungkeman (paying respects to parents)",d:false},
+      {t:"Resepsi (reception)",d:false},
+      {t:"Unduh Mantu (groom-side reception)",d:false}
+    ],
+    legal:[
+      {t:"Muslim: Register via KUA / Simkah online (simkah4.kemenag.go.id)",d:false,n:"Start ~1–3 months ahead"},
+      {t:"Muslim: Surat pengantar RT/RW → Kelurahan (N1–N4 / model forms)",d:false,n:""},
+      {t:"Muslim: Surat keterangan belum menikah",d:false,n:""},
+      {t:"Muslim: Numpang nikah letter if marrying outside your domicile",d:false,n:""},
+      {t:"Muslim: Imunisasi TT (required in some regions)",d:false,n:""},
+      {t:"Non-Muslim: Pemberkatan at place of worship",d:false,n:""},
+      {t:"Non-Muslim: Pencatatan at Dinas Dukcapil / Catatan Sipil",d:false,n:"Within set days of ceremony"},
+      {t:"Both: KTP, Kartu Keluarga (KK), akta kelahiran (birth cert)",d:false,n:""},
+      {t:"Both: Pas foto (check background color & size rules)",d:false,n:""},
+      {t:"Both: Collect buku nikah / akta perkawinan after",d:false,n:""}
+    ]
+  };
+}
+
+/* ---------- utilities ---------- */
+function rp(v){v=Number(v)||0;return "Rp "+v.toLocaleString("id-ID");}
+function openLink(btn){var i=btn.previousElementSibling;var u=i&&i.value.trim();if(!u)return alert("Add a link first.");if(!/^https?:\/\//i.test(u))u="https://"+u;window.open(u,"_blank","noopener");}
+function el(id){return document.getElementById(id);}
+function esc(s){return String(s==null?"":s);}
+
+/* ---------- tabs ---------- */
+var TABS=[["overview","Overview"],["budget","Budget"],["guests","Guests"],["vendors","Vendors"],
+  ["adat","Adat & Ceremony"],["legal","Legal"],["seserahan","Seserahan & Mahar"],["rundown","Rundown"],["data","Backup"]];
+function buildNav(){
+  var n=el("nav");
+  TABS.forEach(function(t,i){
+    var b=document.createElement("button");b.textContent=t[1];b.dataset.go=t[0];
+    if(i===0)b.className="active";
+    b.onclick=function(){show(t[0]);};
+    n.appendChild(b);
+  });
+}
+function show(name){
+  var tabs=document.querySelectorAll(".tab");
+  for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle("active",tabs[i].dataset.tab===name);
+  var btns=el("nav").children;
+  for(var j=0;j<btns.length;j++)btns[j].classList.toggle("active",btns[j].dataset.go===name);
+}
+
+/* ---------- table configs ---------- */
+var TABLES={
+  budget:{
+    key:"budget",target:"budgetTable",
+    cols:[
+      {h:"Category",type:"text"},
+      {h:"Estimated",type:"num"},
+      {h:"Actual",type:"num"},
+      {h:"Status",type:"select",opts:["no","DP","lunas"]}
+    ],
+    labels:{no:"Not paid",DP:"DP paid",lunas:"Lunas (full)"},
+    after:renderBudgetCards
+  },
+  guests:{
+    key:"guests",target:"guestTable",
+    cols:[
+      {h:"Name",type:"text"},
+      {h:"Side",type:"select",opts:["Groom","Bride"]},
+      {h:"Category",type:"select",opts:["Family","Friends","Work","VIP"]},
+      {h:"Invited #",type:"num"},
+      {h:"RSVP",type:"select",opts:["Pending","Yes","No"]},
+      {h:"Table",type:"text"}
+    ],
+    after:renderGuestCards
+  },
+  vendors:{
+    key:"vendors",target:"vendorTable",
+    cols:[
+      {h:"Category",type:"text"},
+      {h:"Vendor",type:"text"},
+      {h:"Contact",type:"text"},
+      {h:"Quote",type:"num"},
+      {h:"DP paid",type:"num"},
+      {h:"Booked",type:"select",opts:["no","yes"]},
+      {h:"Notes",type:"text"}
+    ],
+    after:renderVendorCards
+  },
+  seserahan:{
+    key:"seserahan",target:"seserahanTable",
+    cols:[{h:"Item",type:"text"},{h:"Qty",type:"text"},{h:"Notes",type:"text"},{h:"Marketplace link",type:"link"}]
+  },
+  rundown:{
+    key:"rundown",target:"rundownTable",
+    cols:[{h:"Time",type:"text"},{h:"Event (acara)",type:"text"},{h:"PIC",type:"text"}]
+  }
+};
+
+function renderTable(cfg){
+  var rows=db[cfg.key],t=el(cfg.target),html="<tr>";
+  cfg.cols.forEach(function(c){html+="<th class='"+(c.type==="num"?"num":"")+"'>"+c.h+"</th>";});
+  html+="<th></th></tr>";
+  rows.forEach(function(row,ri){
+    html+="<tr>";
+    cfg.cols.forEach(function(c,ci){
+      var v=esc(row[ci]);
+      if(c.type==="link"){
+        html+="<td><div style='display:flex;gap:4px;align-items:center'>"
+          +"<input type='url' placeholder='https://...' value=\""+v.replace(/"/g,"&quot;")+"\" data-k='"+cfg.key+"' data-r='"+ri+"' data-c='"+ci+"'>"
+          +"<button class='btn sm ghost' title='Open link' onclick='openLink(this)'>↗</button></div></td>";
+      }else if(c.type==="select"){
+        html+="<td><select data-k='"+cfg.key+"' data-r='"+ri+"' data-c='"+ci+"'>";
+        c.opts.forEach(function(o){
+          var lbl=cfg.labels&&cfg.labels[o]?cfg.labels[o]:o;
+          html+="<option value='"+o+"'"+(v===o?" selected":"")+">"+lbl+"</option>";
+        });
+        html+="</select></td>";
+      }else{
+        var cls=c.type==="num"?"num":"";
+        var it=c.type==="num"?"number":"text";
+        html+="<td><input type='"+it+"' class='"+cls+"' value=\""+v.replace(/"/g,"&quot;")+"\" data-k='"+cfg.key+"' data-r='"+ri+"' data-c='"+ci+"'></td>";
+      }
+    });
+    html+="<td><button class='del' title='Delete' onclick=\"delRow('"+cfg.key+"',"+ri+")\">✕</button></td>";
+    html+="</tr>";
+  });
+  t.innerHTML=html;
+  if(cfg.after)cfg.after();
+}
+function addRow(key){
+  var cfg=TABLES[key],blank=cfg.cols.map(function(c){return c.type==="select"?c.opts[0]:"";});
+  db[key].push(blank);save();renderTable(cfg);
+}
+function delRow(key,ri){
+  db[key].splice(ri,1);save();renderTable(TABLES[key]);
+}
+
+/* ---------- checklists ---------- */
+function renderChecks(key,listId){
+  var ul=el(listId),items=db[key],html="";
+  items.forEach(function(it,i){
+    html+="<li class='"+(it.d?"done":"")+"'>";
+    html+="<input type='checkbox' data-chk='"+key+"' data-i='"+i+"'"+(it.d?" checked":"")+">";
+    html+="<div class='body'><div class='ttl'>"+esc(it.t)+"</div>";
+    if(it.n)html+="<div class='note'>"+esc(it.n)+"</div>";
+    html+="</div><button class='del' onclick=\"delCheck('"+key+"',"+i+")\">✕</button></li>";
+  });
+  ul.innerHTML=html;
+}
+function addCheck(key){
+  var inp=el(key+"New"),v=inp.value.trim();if(!v)return;
+  db[key].push({t:v,d:false,n:""});inp.value="";save();renderChecks(key,key+"List");
+}
+function delCheck(key,i){db[key].splice(i,1);save();renderChecks(key,key+"List");}
+
+/* ---------- summary cards ---------- */
+function sumCol(key,ci){return db[key].reduce(function(a,r){return a+(Number(r[ci])||0);},0);}
+function renderBudgetCards(){
+  var est=sumCol("budget",1),act=sumCol("budget",2),total=Number(db.totalBudget)||0;
+  var paid=db.budget.reduce(function(a,r){return a+(r[3]==="lunas"?(Number(r[2])||0):0);},0);
+  card("budgetCards",[
+    ["Total budget",rp(total)],
+    ["Estimated",rp(est)],
+    ["Actual spent",rp(act)],
+    ["Remaining",rp(total-act)]
+  ]);
+}
+function renderGuestCards(){
+  var g=db.guests,inv=g.reduce(function(a,r){return a+(Number(r[3])||0);},0);
+  var yes=g.filter(function(r){return r[4]==="Yes";}).length;
+  var no=g.filter(function(r){return r[4]==="No";}).length;
+  card("guestCards",[["Parties",String(g.length)],["Invited (pax)",String(inv)],["RSVP Yes",String(yes)],["RSVP No",String(no)]]);
+}
+function renderVendorCards(){
+  var v=db.vendors,quote=sumCol("vendors",3),dp=sumCol("vendors",4);
+  var booked=v.filter(function(r){return r[5]==="yes";}).length;
+  card("vendorCards",[["Vendors",String(v.length)],["Booked",String(booked)],["Total quotes",rp(quote)],["DP paid",rp(dp)],["Balance",rp(quote-dp)]]);
+}
+function renderOverviewCards(){
+  var done=db.timeline.filter(function(x){return x.d;}).length;
+  var total=Number(db.totalBudget)||0,act=sumCol("budget",2);
+  var inv=db.guests.reduce(function(a,r){return a+(Number(r[3])||0);},0);
+  card("overviewCards",[
+    ["Milestones done",done+" / "+db.timeline.length],
+    ["Budget",rp(total)],
+    ["Spent",rp(act)],
+    ["Guests invited",String(inv)]
+  ]);
+}
+function card(target,pairs){
+  el(target).innerHTML=pairs.map(function(p){
+    return "<div class='card'><div class='label'>"+p[0]+"</div><div class='val'>"+p[1]+"</div></div>";
+  }).join("");
+}
+
+/* ---------- countdown ---------- */
+function renderCountdown(){
+  var c=el("countdown");
+  if(!db.wdate){c.textContent="Set your date →";return;}
+  var d=new Date(db.wdate+"T00:00:00"),now=new Date();now.setHours(0,0,0,0);
+  var diff=Math.round((d-now)/86400000);
+  var opts={day:"2-digit",month:"short",year:"numeric"};
+  var ds=d.toLocaleDateString("en-GB",opts);
+  if(diff>0)c.textContent=diff+" days to go · "+ds;
+  else if(diff===0)c.textContent="🎉 Today! · "+ds;
+  else c.textContent="Married "+Math.abs(diff)+" days ago · "+ds;
+}
+
+/* ---------- data io ---------- */
+function exportData(){
+  var blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="wedding-data.json";a.click();URL.revokeObjectURL(a.href);
+}
+function importData(input){
+  var f=input.files[0];if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{var r=JSON.parse(rd.result);db=merge(r);renderAll();save();alert("Data imported.");}
+    catch(e){alert("Could not read that file.");}
+  };
+  rd.readAsText(f);input.value="";
+}
+function resetAll(){
+  if(confirm("Erase ALL data and start fresh? This can't be undone."))
+  {db=seed();save();renderAll();}
+}
+
+/* ---------- bind fields ---------- */
+function bindField(id,prop,after){
+  var e=el(id);e.value=db[prop]||"";
+  e.oninput=function(){db[prop]=e.value;save();if(after)after();};
+}
+
+/* ---------- global input delegation ---------- */
+document.addEventListener("input",function(ev){
+  var t=ev.target;
+  if(t.dataset.k!=null){
+    db[t.dataset.k][t.dataset.r][t.dataset.c]=t.value;save();
+    var cfg=TABLES[t.dataset.k];if(cfg&&cfg.after)cfg.after();
+    if(t.dataset.k==="budget"||t.dataset.k==="guests")renderOverviewCards();
+  }
+});
+document.addEventListener("change",function(ev){
+  var t=ev.target;
+  if(t.dataset.chk!=null){
+    var key=t.dataset.chk;db[key][t.dataset.i].d=t.checked;save();
+    renderChecks(key,key+"List");if(key==="timeline")renderOverviewCards();
+  }
+});
+
+/* ---------- init ---------- */
+function renderAll(){
+  el("p1").value=db.p1||"";el("p2").value=db.p2||"";
+  el("wdate").value=db.wdate||"";el("totalBudget").value=db.totalBudget||"";el("mahar").value=db.mahar||"";
+  renderCountdown();
+  for(var k in TABLES)renderTable(TABLES[k]);
+  renderChecks("timeline","timeline");
+  renderChecks("adat","adatList");
+  renderChecks("legal","legalList");
+  renderOverviewCards();
+}
+function init(){
+  bindField("p1","p1");bindField("p2","p2");
+  bindField("wdate","wdate",renderCountdown);
+  bindField("totalBudget","totalBudget",function(){renderBudgetCards();renderOverviewCards();});
+  bindField("mahar","mahar");
+  renderAll();
+  cloudInit();
+}
+buildNav();
+init();
+show(TABS[0][0]);
+</script>
+</body>
+</html>
