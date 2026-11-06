@@ -7,12 +7,12 @@
 <style>
 :root{
   --bg:#faf7f5; --panel:#fff; --ink:#2a2420; --muted:#8a7f78; --line:#ebe3dd;
-  --accent:#b5835a; --accent-soft:#f3e7db; --good:#3f8f6b; --warn:#c2674b; --chip:#f0ebe7;
+  --accent:#b5835a; --accent-soft:#f3e7db; --warn:#c2674b; --chip:#f0ebe7;
 }
 @media (prefers-color-scheme:dark){
   :root{
     --bg:#1b1815; --panel:#262220; --ink:#ece6e1; --muted:#a89d94; --line:#3a332e;
-    --accent:#cd9b6f; --accent-soft:#352c24; --good:#5cb48a; --warn:#e08a6d; --chip:#322b26;
+    --accent:#cd9b6f; --accent-soft:#352c24; --warn:#e08a6d; --chip:#322b26;
   }
 }
 *{box-sizing:border-box}
@@ -62,14 +62,10 @@ td input,td select{padding:5px 7px}
 .check li:last-child{border-bottom:none}
 .check input[type=checkbox]{width:18px;height:18px;margin-top:3px;flex:none;accent-color:var(--accent)}
 .check .body{flex:1}.check .ttl{font-weight:500}
-.check.done .ttl,li.done .ttl{text-decoration:line-through;color:var(--muted)}
+li.done .ttl{text-decoration:line-through;color:var(--muted)}
 .check .note{color:var(--muted);font-size:13px;margin-top:2px}
 .chip{display:inline-block;background:var(--chip);color:var(--muted);border-radius:20px;padding:2px 9px;font-size:12px;margin-left:6px}
-.group-ttl{font-weight:600;margin:18px 0 2px;color:var(--accent)}
 .foot{text-align:center;color:var(--muted);font-size:12px;padding:24px 16px;border-top:1px solid var(--line);margin-top:20px}
-.pill{border-radius:20px;padding:3px 10px;font-size:12px;font-weight:500;display:inline-block}
-.pill.yes{background:var(--accent-soft);color:var(--good)}
-.pill.no{background:var(--chip);color:var(--muted)}
 .right{margin-left:auto}
 .gate{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
 .gate .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px;max-width:360px;width:100%}
@@ -399,7 +395,7 @@ function seed(){
 function rp(v){v=Number(v)||0;return "Rp "+v.toLocaleString("id-ID");}
 function openLink(btn){var i=btn.previousElementSibling;var u=i&&i.value.trim();if(!u)return alert("Add a link first.");if(!/^https?:\/\//i.test(u))u="https://"+u;window.open(u,"_blank","noopener");}
 function el(id){return document.getElementById(id);}
-function esc(s){return String(s==null?"":s);}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
 /* ---------- tabs ---------- */
 var TABS=[["overview","Overview"],["budget","Budget"],["ceremony","Wedding Ceremony"],["seserahan","Seserahan"],
@@ -422,19 +418,18 @@ function show(name){
 }
 
 /* ---------- table configs ---------- */
+// Shared column set for the itemised cost tables (Ceremony / Seserahan / Mahar).
+function itemCols(paidLabel){return [
+  {h:"Item",type:"text"},{h:"Qty",type:"text"},{h:"Unit price",type:"num"},
+  {h:"Vendor",type:"text"},{h:paidLabel,type:"select",opts:["no","yes"]},
+  {h:"Notes",type:"text"},{h:"Marketplace link",type:"link"}
+];}
+function itemCards(target,key,paidLabel){return function(){renderItemCards(target,key,paidLabel);};}
 var TABLES={
   ceremony:{
     key:"ceremony",target:"ceremonyTable",
-    cols:[
-      {h:"Item",type:"text"},
-      {h:"Qty",type:"text"},
-      {h:"Unit price",type:"num"},
-      {h:"Vendor",type:"text"},
-      {h:"Paid",type:"select",opts:["no","yes"]},
-      {h:"Notes",type:"text"},
-      {h:"Marketplace link",type:"link"}
-    ],
-    after:renderCeremonyCards
+    cols:itemCols("Paid"),
+    after:itemCards("ceremonyCards","ceremony","Paid")
   },
   guests:{
     key:"guests",target:"guestTable",
@@ -463,29 +458,13 @@ var TABLES={
   },
   seserahan:{
     key:"seserahan",target:"seserahanTable",
-    cols:[
-      {h:"Item",type:"text"},
-      {h:"Qty",type:"text"},
-      {h:"Unit price",type:"num"},
-      {h:"Vendor",type:"text"},
-      {h:"Bought",type:"select",opts:["no","yes"]},
-      {h:"Notes",type:"text"},
-      {h:"Marketplace link",type:"link"}
-    ],
-    after:renderSeserahanCards
+    cols:itemCols("Bought"),
+    after:itemCards("seserahanCards","seserahan","Bought")
   },
   maharkawin:{
     key:"maharkawin",target:"maharTable",
-    cols:[
-      {h:"Item",type:"text"},
-      {h:"Qty",type:"text"},
-      {h:"Unit price",type:"num"},
-      {h:"Vendor",type:"text"},
-      {h:"Bought",type:"select",opts:["no","yes"]},
-      {h:"Notes",type:"text"},
-      {h:"Marketplace link",type:"link"}
-    ],
-    after:renderMaharCards
+    cols:itemCols("Bought"),
+    after:itemCards("maharCards","maharkawin","Bought")
   },
   rundown:{
     key:"rundown",target:"rundownTable",
@@ -503,7 +482,7 @@ function renderTable(cfg){
       var v=esc(row[ci]);
       if(c.type==="link"){
         html+="<td><div style='display:flex;gap:4px;align-items:center'>"
-          +"<input type='url' placeholder='https://...' value=\""+v.replace(/"/g,"&quot;")+"\" data-k='"+cfg.key+"' data-r='"+ri+"' data-c='"+ci+"'>"
+          +"<input type='url' placeholder='https://...' value=\""+v+"\" data-k='"+cfg.key+"' data-r='"+ri+"' data-c='"+ci+"'>"
           +"<button class='btn sm ghost' title='Open link' onclick='openLink(this)'>↗</button></div></td>";
       }else if(c.type==="select"){
         html+="<td><select data-k='"+cfg.key+"' data-r='"+ri+"' data-c='"+ci+"'>";
@@ -515,7 +494,7 @@ function renderTable(cfg){
       }else{
         var cls=c.type==="num"?"num":"";
         var it=c.type==="num"?"number":"text";
-        html+="<td><input type='"+it+"' class='"+cls+"' value=\""+v.replace(/"/g,"&quot;")+"\" data-k='"+cfg.key+"' data-r='"+ri+"' data-c='"+ci+"'></td>";
+        html+="<td><input type='"+it+"' class='"+cls+"' value=\""+v+"\" data-k='"+cfg.key+"' data-r='"+ri+"' data-c='"+ci+"'></td>";
       }
     });
     html+="<td><button class='del' title='Delete' onclick=\"delRow('"+cfg.key+"',"+ri+")\">✕</button></td>";
@@ -589,9 +568,6 @@ function renderItemCards(target,key,paidLabel){
   card(target,[["Items",String(s.items)],["Total cost",rp(s.total)],[paidLabel,rp(s.paid)],["Remaining",rp(s.outstanding)]]);
   renderBudget();
 }
-function renderSeserahanCards(){renderItemCards("seserahanCards","seserahan","Bought");}
-function renderCeremonyCards(){renderItemCards("ceremonyCards","ceremony","Paid");}
-function renderMaharCards(){renderItemCards("maharCards","maharkawin","Bought");}
 function renderVendorCards(){
   var v=db.vendors,quote=sumCol("vendors",3),dp=sumCol("vendors",4);
   var booked=v.filter(function(r){return r[5]==="yes";}).length;
