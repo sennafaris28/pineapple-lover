@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pineapple Lover — Wedding Dashboard · Technical &amp; Functional Report</title>
+<style>
+  :root{
+    --bg:#faf7f5; --panel:#fff; --ink:#2a2420; --muted:#6f655e; --line:#e7ded7;
+    --accent:#b5835a; --accent-soft:#f5ebe0; --warn:#c2674b; --ok:#4c8a5f;
+    --code-bg:#2b2724; --code-ink:#f0e9e2; --chip:#f0ebe7;
+    --maxw:860px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#1b1815; --panel:#232019; --ink:#ece6e1; --muted:#a89d94; --line:#3a332e;
+      --accent:#cd9b6f; --accent-soft:#2e271f; --warn:#e08a6d; --ok:#79b98e;
+      --code-bg:#15120f; --code-ink:#ece6e1; --chip:#322b26;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:48px 24px 120px}
+  header.doc{border-bottom:2px solid var(--accent); padding-bottom:24px; margin-bottom:8px}
+  .kicker{color:var(--accent); font-weight:700; letter-spacing:.08em; text-transform:uppercase; font-size:12px}
+  h1{font-size:34px; line-height:1.15; margin:8px 0 6px}
+  .subtitle{color:var(--muted); font-size:17px; margin:0}
+  .meta{color:var(--muted); font-size:13px; margin-top:14px}
+  .meta code{background:var(--chip); padding:2px 6px; border-radius:5px}
+  h2{font-size:25px; margin:52px 0 8px; padding-top:16px; border-top:1px solid var(--line)}
+  h3{font-size:19px; margin:30px 0 6px; color:var(--ink)}
+  h4{font-size:16px; margin:20px 0 4px; color:var(--accent)}
+  p{margin:10px 0}
+  a{color:var(--accent)}
+  ul,ol{margin:10px 0; padding-left:22px}
+  li{margin:5px 0}
+  code{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:.88em; background:var(--chip); padding:1px 5px; border-radius:4px}
+  pre{
+    background:var(--code-bg); color:var(--code-ink); padding:16px 18px; border-radius:10px;
+    overflow-x:auto; font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:13px; line-height:1.55;
+    margin:14px 0; border:1px solid rgba(255,255,255,.06);
+  }
+  pre code{background:none; padding:0; font-size:inherit; color:inherit}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 22px; margin:16px 0}
+  .note{border-left:4px solid var(--accent); background:var(--accent-soft); padding:12px 18px; border-radius:0 8px 8px 0; margin:16px 0}
+  .warn{border-left:4px solid var(--warn); background:color-mix(in srgb,var(--warn) 10%,transparent); padding:12px 18px; border-radius:0 8px 8px 0; margin:16px 0}
+  .ok{border-left:4px solid var(--ok); background:color-mix(in srgb,var(--ok) 10%,transparent); padding:12px 18px; border-radius:0 8px 8px 0; margin:16px 0}
+  table{border-collapse:collapse; width:100%; margin:16px 0; font-size:14px}
+  th,td{border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top}
+  th{background:var(--accent-soft); font-weight:700}
+  .toc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 24px; margin:28px 0}
+  .toc h2{border:0; margin:0 0 10px; padding:0; font-size:17px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+  .toc ol{columns:2; column-gap:36px}
+  @media(max-width:640px){.toc ol{columns:1}}
+  .toc a{text-decoration:none}
+  .tag{display:inline-block; background:var(--chip); color:var(--muted); font-size:12px; font-weight:600; padding:2px 9px; border-radius:20px; margin-right:6px}
+  .flow{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px; line-height:1.7; white-space:pre; overflow-x:auto}
+  hr{border:0; border-top:1px solid var(--line); margin:40px 0}
+  .small{font-size:13px; color:var(--muted)}
+  @media print{
+    body{background:#fff; color:#000; font-size:12px}
+    .wrap{padding:0}
+    h2{page-break-after:avoid} pre,table,.panel,.note,.warn,.ok{page-break-inside:avoid}
+    a{color:#000}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">Project Report</div>
+  <h1>Pineapple Lover 🍍</h1>
+  <p class="subtitle">A two-person wedding-planning dashboard — React + Redux + Firebase. Full technical &amp; functional walkthrough, plus a from-scratch build guide.</p>
+  <div class="meta">
+    Live: <a href="https://sennafaris28.github.io/pineapple-lover/">sennafaris28.github.io/pineapple-lover</a><br>
+    Repo: <code>github.com/sennafaris28/pineapple-lover</code> &nbsp;·&nbsp; Source checkout: <code>~/claudia/pineapple-lover</code><br>
+    Legacy (vanilla) archive: <code>~/claudia/wedding-legacy</code>
+  </div>
+</header>
+
+<div class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#what">What it is</a></li>
+    <li><a href="#functional">Functional walkthrough — the 11 tabs</a></li>
+    <li><a href="#how-two">How two people use it together</a></li>
+    <li><a href="#stack">The technical stack</a></li>
+    <li><a href="#dataflow">How data flows (the big picture)</a></li>
+    <li><a href="#store">The Redux store</a></li>
+    <li><a href="#sync">The cloud-sync layer</a></li>
+    <li><a href="#auth">Authentication &amp; lockout</a></li>
+    <li><a href="#files">File-by-file map</a></li>
+    <li><a href="#datamodel">Data model (row shapes)</a></li>
+    <li><a href="#security">Security &amp; cost notes</a></li>
+    <li><a href="#deploy">Hosting &amp; deployment</a></li>
+    <li><a href="#recreate">Step-by-step: build it from scratch</a></li>
+    <li><a href="#addtab">How to add a new tab</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="what">1 · What it is</h2>
+<p>
+  <strong>Pineapple Lover</strong> is a private web dashboard for planning an Indonesian wedding. Two people —
+  the bride and groom — sign in with their Google accounts and edit the <em>same</em> live planning data from
+  their own phones or laptops. Every edit one person makes shows up on the other person's screen within a second.
+</p>
+<p>It tracks the things an Indonesian wedding actually needs: the budget, the <em>seserahan</em> (gift trays),
+  the <em>mahar / mas kawin</em> (dowry), the ceremony costs, guests, vendors, <em>adat</em> (customary) rituals,
+  legal paperwork (KUA/Simkah), and the day-of rundown.</p>
+<div class="note">
+  <strong>One sentence:</strong> it's a shared spreadsheet-style planner with a wedding-specific structure, live
+  sync between two people, and a Google login so nobody else can see or touch the data.
+</div>
+<p>There are two generations of this app:</p>
+<table>
+  <tr><th>Version</th><th>What</th><th>Where</th></tr>
+  <tr><td>Vanilla (legacy)</td><td>The original — one single <code>index.html</code> file with all HTML, CSS and JS inlined.</td><td><code>~/claudia/wedding-legacy</code> (archived, no longer live)</td></tr>
+  <tr><td>React (current)</td><td>A proper component-based rewrite with Redux state management and a build step. <strong>This is what's live.</strong></td><td><code>~/claudia/pineapple-lover</code> → deployed to GitHub Pages</td></tr>
+</table>
+<p class="small">This report describes the React version, which is the one now serving at the live URL.</p>
+
+<!-- ============================================ -->
+<h2 id="functional">2 · Functional walkthrough — the 11 tabs</h2>
+<p>The app is a single page with a centered row of tabs. You click a tab, that section shows. Here's what each does:</p>
+
+<h4>1. Overview</h4>
+<p>The landing screen. Shows the couple's names, the wedding date, a live countdown ("X days to go"), and summary cards
+  pulling totals from the rest of the app (total budget, how much is allocated, guest count, etc.). Read-at-a-glance.</p>
+
+<h4>2. Budget</h4>
+<p><strong>Read-only roll-up.</strong> You don't type numbers here — it <em>derives</em> them. It adds up what the
+  Ceremony, Seserahan and Mahar tabs cost and shows you: total budget vs. allocated vs. remaining, plus a breakdown
+  table by category. Change a price anywhere else and this updates itself.</p>
+
+<h4>3. Wedding Ceremony</h4>
+<p>An itemized cost table — venue (gedung), catering, MUA (makeup), decor, WO (wedding organizer), etc. Columns:
+  Item, Qty, Unit price, Vendor, Paid?, Notes, and a Marketplace link. Totals at the bottom. Add/delete rows freely.</p>
+
+<h4>4. Seserahan</h4>
+<p>The gift-tray checklist — same itemized table shape as Ceremony, but "Paid?" reads "Bought?". This is where the
+  bride's imported gift list lives (shoes, bags, cosmetics, prayer items…), each with a price, vendor and a Shopee/Tokopedia link.</p>
+
+<h4>5. Mahar &amp; Mas Kawin</h4>
+<p>The dowry items — again the same itemized table. Tracks things like the mahar money, gold, prayer set, etc.</p>
+
+<h4>6. Guests</h4>
+<p>Guest list table: Name, Side (Groom/Bride), Category (Family/Friends/Work/VIP), Invited #, RSVP status, Table assignment.</p>
+
+<h4>7. Vendors</h4>
+<p>Vendor tracker: Category, Vendor, Contact, Quote, DP (down payment) paid, Booked?, Notes. Keeps the money and the
+  contacts in one place.</p>
+
+<h4>8. Adat &amp; Rituals</h4>
+<p>A checklist of customary/traditional ceremony steps (siraman, midodareni, akad, resepsi, etc.) — tick them off as
+  you plan each one.</p>
+
+<h4>9. Legal</h4>
+<p>A checklist for the paperwork trail — KUA registration, Simkah, documents (KTP, KK, N1–N4 forms), pre-marital
+  requirements. Tick-box style.</p>
+
+<h4>10. Rundown</h4>
+<p>The minute-by-minute day-of schedule: Time, Event (acara), PIC (person in charge). Add a row per slot.</p>
+
+<h4>11. Backup</h4>
+<p>Data controls: <strong>Export</strong> everything to a <code>wedding-data.json</code> file (hard backup),
+  <strong>Import</strong> a JSON file to replace current data, <strong>Sign out</strong>, and <strong>Reset all</strong>
+  (wipe and start fresh, with a confirm prompt).</p>
+
+<div class="note">Three of the tabs (Adat, Legal, parts of Overview) are <em>checklists</em>; six (Ceremony, Seserahan, Mahar,
+  Guests, Vendors, Rundown) are <em>editable tables</em>; Budget is a <em>derived read-only roll-up</em>. That's the
+  whole functional surface.</div>
+
+<!-- ============================================ -->
+<h2 id="how-two">3 · How two people use it together</h2>
+<ol>
+  <li>Both partners open the same URL and sign in with Google.</li>
+  <li>Only two specific Google accounts are allowed in (see <a href="#auth">Authentication</a>); everyone else is blocked.</li>
+  <li>They share one workspace keyed by a <code>WEDDING_ID</code> (<code>"pineapple-wedding"</code>) — same id = same data.</li>
+  <li>When one edits a cell, the change is pushed to Firebase; the other's browser is listening and re-renders instantly.</li>
+  <li>Everything is also cached in each browser's <code>localStorage</code>, so the app still opens and shows the last
+    known data even with no connection — it just re-syncs when it reconnects.</li>
+</ol>
+<div class="warn"><strong>Known trade-off:</strong> sync is whole-document and "last write wins." If both people edit
+  the <em>same cell</em> at the <em>same second</em>, the last save wins and the other's keystroke can get overwritten.
+  For a two-person planner this is fine in practice — you're rarely in the exact same cell at the exact same moment.</div>
+
+<!-- ============================================ -->
+<h2 id="stack">4 · The technical stack</h2>
+<table>
+  <tr><th>Layer</th><th>Choice</th><th>Why</th></tr>
+  <tr><td>UI framework</td><td>React 18</td><td>Component model; the whole app is ~20 small components.</td></tr>
+  <tr><td>State management</td><td>Redux Toolkit</td><td>One central store so "edit once, update everywhere" is automatic. (Admittedly overkill for this size — chosen partly as a learning vehicle.)</td></tr>
+  <tr><td>Build tool</td><td>Vite 5</td><td>Fast dev server, tiny config, outputs a static <code>dist/</code>.</td></tr>
+  <tr><td>Cloud database</td><td>Firebase Realtime Database</td><td>Dead-simple live sync between two clients; generous free tier.</td></tr>
+  <tr><td>Auth</td><td>Firebase Auth — Google sign-in only</td><td>No passwords to manage; free; OAuth via Google.</td></tr>
+  <tr><td>Offline cache</td><td>Browser <code>localStorage</code></td><td>Instant load + works offline.</td></tr>
+  <tr><td>Hosting</td><td>GitHub Pages</td><td>Free static hosting on a <code>github.io</code> URL.</td></tr>
+</table>
+<p>The built app is a pile of static files (HTML + one JS bundle + one CSS file). There is <strong>no backend
+  server</strong> you run — Firebase is the only "server," and it's managed by Google.</p>
+
+<!-- ============================================ -->
+<h2 id="dataflow">5 · How data flows (the big picture)</h2>
+<p>This is the mental model for the whole app. Read it once and everything else clicks:</p>
+<div class="panel flow">USER TYPES IN A CELL
+        │
+        ▼
+  dispatch(setCell(...))         ← a Redux "action" describing the change
+        │
+        ▼
+  weddingSlice reducer           ← updates the single source of truth (the store)
+        │
+        ├──────────────► React re-renders any component that reads that data
+        │                (Budget roll-up, Overview cards, the table — all at once)
+        │
+        ▼
+  syncMiddleware (runs after every wedding/* action)
+        │
+        ├──► persistLocal(state)        → saves to localStorage (offline cache)
+        │
+        └──► scheduleCloudPush(state)   → debounced 400ms → writes to Firebase
+                                                    │
+                                                    ▼
+                                          FIREBASE REALTIME DB
+                                                    │
+                                                    ▼  (onValue listener)
+                                          THE OTHER PERSON'S BROWSER
+                                                    │
+                                                    ▼
+                                          dispatch(replaceAll(remoteData))
+                                                    │
+                                                    ▼
+                                          their store updates → their UI re-renders</div>
+<p>The key idea: <strong>components never talk to each other or to Firebase directly.</strong> They only read from the
+  store and dispatch actions. Everything else (saving, syncing, deriving totals) hangs off that one pipe.</p>
+
+<!-- ============================================ -->
+<h2 id="store">6 · The Redux store</h2>
+<p>There's one store with two "slices" (sub-sections of state):</p>
+<h4><code>wedding</code> slice — all the planner data</h4>
+<pre><code>{
+  p1, p2,            // partner names
+  wdate,             // wedding date
+  totalBudget,       // the budget ceiling
+  mahar, timeline,   // misc fields
+  ceremony:   [ [item, qty, unitPrice, vendor, paid, notes, link], ... ],
+  seserahan:  [ ...same row shape... ],
+  maharkawin: [ ...same row shape... ],
+  guests:     [ [name, side, category, invited, rsvp, table], ... ],
+  vendors:    [ [category, vendor, contact, quote, dp, booked, notes], ... ],
+  rundown:    [ [time, event, pic], ... ],
+  adat:       [ {text, done}, ... ],   // checklists
+  legal:      [ {text, done}, ... ],
+}</code></pre>
+<p>Its reducers (the only ways to change data) are deliberately generic, so one set covers every table:</p>
+<table>
+  <tr><th>Reducer</th><th>What it does</th></tr>
+  <tr><td><code>setField</code></td><td>Set a top-level field (names, date, budget).</td></tr>
+  <tr><td><code>setCell</code></td><td>Set one cell in one row of one table.</td></tr>
+  <tr><td><code>addRow</code> / <code>delRow</code></td><td>Add / remove a row in any table.</td></tr>
+  <tr><td><code>toggleCheck</code> / <code>addCheck</code> / <code>delCheck</code></td><td>Checklist operations (Adat, Legal).</td></tr>
+  <tr><td><code>replaceAll</code></td><td>Swap the whole dataset — used by cloud sync and JSON import.</td></tr>
+  <tr><td><code>resetAll</code></td><td>Wipe back to the seed defaults.</td></tr>
+</table>
+<h4><code>auth</code> slice — who's signed in</h4>
+<p>Holds <code>{ user, status, error }</code>. <code>status</code> is <code>connecting</code> / <code>local</code> /
+  signed-in. The UI uses this to decide whether to show the Google sign-in gate or the dashboard.</p>
+<div class="note"><strong>Derived numbers aren't stored</strong> — they're computed on the fly by <em>selectors</em>
+  (<code>selectors.js</code>): <code>budgetRollup()</code>, <code>sectionStats()</code>, <code>sumCol()</code>.
+  That's why the Budget tab is always correct without anyone "recalculating" it.</p>
+
+<!-- ============================================ -->
+<h2 id="sync">7 · The cloud-sync layer</h2>
+<p>Two files do all the Firebase ↔ Redux bridging:</p>
+<h4><code>src/cloud.js</code></h4>
+<ul>
+  <li><code>initCloud(store)</code> — starts the auth listener (<code>onAuthStateChanged</code>). When a user signs in, it begins subscribing to their wedding's data.</li>
+  <li><code>subscribe()</code> — attaches Firebase's <code>onValue</code> listener. When remote data changes, it dispatches <code>replaceAll</code> to update the local store.</li>
+  <li><code>scheduleCloudPush(state)</code> — debounced (400ms) write up to Firebase, so rapid typing doesn't hammer the network.</li>
+  <li><code>signIn()</code> / <code>logOut()</code> — Google popup sign-in and sign-out.</li>
+</ul>
+<h4><code>src/syncMiddleware.js</code></h4>
+<p>Redux middleware that runs after every <code>wedding/*</code> action: it saves to localStorage and (unless the change
+  <em>came from</em> the cloud) schedules a push back up.</p>
+<div class="warn"><strong>The echo-guard.</strong> Without care you'd get an infinite loop: remote change → update store →
+  middleware pushes it back up → triggers another remote change → … The fix is an <code>applyingRemote</code> flag:
+  while applying a change that came from Firebase, the middleware skips the push. Plus a <code>JSON.stringify</code>
+  compare so identical data never re-writes.</div>
+
+<!-- ============================================ -->
+<h2 id="auth">8 · Authentication &amp; lockout</h2>
+<p>Sign-in is <strong>Google only</strong> (Firebase Auth with <code>GoogleAuthProvider</code> +
+  <code>signInWithPopup</code>). There are no passwords.</p>
+<p>Letting someone <em>sign in</em> is not the same as letting them <em>read the data</em>. The real gate is the
+  <strong>Firebase Realtime Database security rules</strong>, which restrict read/write to two specific user IDs:</p>
+<pre><code>{
+  "rules": {
+    ".read":  "auth != null &amp;&amp; (auth.uid === 'UID_ONE' || auth.uid === 'UID_TWO')",
+    ".write": "auth != null &amp;&amp; (auth.uid === 'UID_ONE' || auth.uid === 'UID_TWO')"
+  }
+}</code></pre>
+<p>Anyone else can click "sign in with Google," but Firebase refuses to hand them any data. That's the lockout.</p>
+<div class="note"><strong>The Firebase web config is <em>not</em> a secret.</strong> The apiKey/projectId in
+  <code>src/config.js</code> are safe to publish — they only identify the project. Security comes entirely from the
+  DB rules above and the list of Authorized Domains in Firebase Auth.</div>
+
+<!-- ============================================ -->
+<h2 id="files">9 · File-by-file map</h2>
+<pre><code>pineapple-lover/
+├── index.html            Vite entry — a &lt;div id="root"&gt; and a script tag
+├── vite.config.js        React plugin + base:'./' (so assets work under /pineapple-lover/)
+├── package.json          Dependencies + dev/build/preview scripts
+├── .github/workflows/
+│   └── deploy.yml         GitHub Actions: build Vite → publish to Pages (see Deployment)
+├── src/
+│   ├── main.jsx          Entry: initCloud(store) + &lt;Provider&gt;&lt;App/&gt;&lt;/Provider&gt;
+│   ├── App.jsx           Shell: tab routing + sign-in gate + header/nav/footer
+│   ├── config.js         Firebase config, WEDDING_ID, the TABS list, table COLumn definitions
+│   ├── seed.js           Default starter data (seed())
+│   ├── firebase.js       Initializes Firebase app/auth/database
+│   ├── cloud.js          Firebase ↔ Redux bridge (auth, subscribe, push, sign-in/out)
+│   ├── syncMiddleware.js Persists every change to localStorage + schedules cloud push
+│   ├── store.js          configureStore({ wedding, auth } + syncMiddleware)
+│   ├── selectors.js      Derived numbers (budget roll-up, section totals)
+│   ├── utils.js          rp() rupiah formatter, countdown, status labels
+│   ├── styles.css        All the CSS
+│   ├── slices/
+│   │   ├── weddingSlice.js  All planner data + reducers
+│   │   └── authSlice.js     user / status / error
+│   └── components/
+│       ├── Header, Nav, AuthGate, Cards, DataTable, Checklist, ItemTab
+│       └── tabs/         One component per tab (Overview, Budget, Ceremony, …)
+├── README.md             Quick run/build/config notes
+└── TUTORIAL.md           Long-form from-scratch build tutorial (22 sections)</code></pre>
+<p>Two reusable components carry most of the UI:</p>
+<ul>
+  <li><strong><code>DataTable.jsx</code></strong> — a generic editable table. You hand it a <code>tableKey</code>
+    (which slice field) and a <code>cols</code> definition; it renders inputs, handles edits, add/delete rows, and
+    opens marketplace links. Powers 6 tabs.</li>
+  <li><strong><code>Checklist.jsx</code></strong> — a generic tick-list. Powers Adat &amp; Legal.</li>
+</ul>
+<p>Because the tables are <em>config-driven</em> (columns defined as data in <code>config.js</code>), adding a column
+  or a whole table is editing a list, not writing new UI.</p>
+
+<!-- ============================================ -->
+<h2 id="datamodel">10 · Data model (row shapes)</h2>
+<p>Tables are arrays of arrays (each row is an array of cell values). The column order <em>is</em> the schema — it's
+  defined once in <code>config.js</code> under <code>COLS</code>:</p>
+<table>
+  <tr><th>Table</th><th>Columns (in order)</th></tr>
+  <tr><td>ceremony / seserahan / maharkawin</td><td>Item · Qty · Unit price · Vendor · Paid(or Bought) · Notes · Marketplace link</td></tr>
+  <tr><td>guests</td><td>Name · Side · Category · Invited # · RSVP · Table</td></tr>
+  <tr><td>vendors</td><td>Category · Vendor · Contact · Quote · DP paid · Booked · Notes</td></tr>
+  <tr><td>rundown</td><td>Time · Event (acara) · PIC</td></tr>
+  <tr><td>adat / legal</td><td>Objects: <code>{ text, done }</code></td></tr>
+</table>
+<p>Each column has a <code>type</code> (<code>text</code> / <code>num</code> / <code>select</code> / <code>link</code>)
+  that tells <code>DataTable</code> how to render that cell's input.</p>
+
+<!-- ============================================ -->
+<h2 id="security">11 · Security &amp; cost notes</h2>
+<ul>
+  <li><strong>Cost: $0.</strong> GitHub Pages (free), Firebase Spark plan (free tier) — a two-person planner is nowhere near the limits.</li>
+  <li><strong>Firebase web config is public-safe</strong> — do not treat the apiKey as a secret. The DB rules are the real control.</li>
+  <li><strong>Data access is locked to two UIDs</strong> via DB rules. Add a third person only by adding their UID there.</li>
+  <li><strong>Authorized Domains</strong> in Firebase Auth must include the live host (<code>sennafaris28.github.io</code>) or Google sign-in is rejected. The URL didn't change in this migration, so this still holds.</li>
+  <li><strong>Backups:</strong> the Backup tab's JSON export is your disaster recovery. Export occasionally.</li>
+</ul>
+
+<!-- ============================================ -->
+<h2 id="deploy">12 · Hosting &amp; deployment</h2>
+<p>The app is hosted free on <strong>GitHub Pages</strong> at <code>https://sennafaris28.github.io/pineapple-lover/</code>.
+  Since Vite needs a build step, "deploying" means building the static <code>dist/</code> and getting it onto Pages.
+  There are two paths, and this project is set up for both:</p>
+
+<h4>Path A — GitHub Actions (the intended, automatic way)</h4>
+<p>A workflow at <code>.github/workflows/deploy.yml</code> runs on every push to <code>main</code>: it checks out the
+  repo, installs deps, runs <code>npm run build</code>, and publishes <code>dist/</code> to Pages. Push code → site
+  updates itself. This needs Pages set to "GitHub Actions" source.</p>
+<div class="warn"><strong>Current status:</strong> Actions is <em>temporarily blocked</em> because the GitHub account
+  has a <strong>billing lock</strong> ("the job was not started because your account is locked due to a billing issue").
+  Until that's resolved, the automatic path can't run. Clear the billing issue in GitHub → Settings → Billing, then
+  switch Pages back to "GitHub Actions" and it'll work.</div>
+
+<h4>Path B — Manual build → <code>gh-pages</code> branch (the current fallback)</h4>
+<p>While Actions is locked, the site is served from a <code>gh-pages</code> branch that holds only the built files.
+  To re-deploy after a change:</p>
+<pre><code># from ~/claudia/pineapple-lover
+npm run build
+
+# copy dist into a throwaway folder, publish it as gh-pages
+rm -rf /tmp/gp &amp;&amp; cp -r dist /tmp/gp &amp;&amp; touch /tmp/gp/.nojekyll
+cd /tmp/gp
+git init -b gh-pages
+git add -A &amp;&amp; git commit -m "Deploy build"
+git push https://github.com/sennafaris28/pineapple-lover.git gh-pages --force</code></pre>
+<p>Pages is currently pointed at: <code>build_type: legacy</code>, source branch <code>gh-pages</code>, path <code>/</code>.</p>
+<div class="ok"><strong>Bottom line:</strong> the site is live via Path B right now. The moment billing is sorted,
+  flip Pages source back to "GitHub Actions" and future deploys become a plain <code>git push</code>.</div>
+
+<!-- ============================================ -->
+<h2 id="recreate">13 · Step-by-step: build it from scratch</h2>
+<p>This is the condensed recreate guide. (The repo's <code>TUTORIAL.md</code> is the long version with every concept
+  explained.) Assumes Node.js 18+ installed.</p>
+
+<h3>Step 1 — Scaffold the project</h3>
+<pre><code>npm create vite@latest pineapple-lover -- --template react
+cd pineapple-lover
+npm install
+npm install @reduxjs/toolkit react-redux firebase</code></pre>
+<p>Then in <code>vite.config.js</code> set <code>base: './'</code> so assets resolve under the Pages sub-path.</p>
+
+<h3>Step 2 — Create a Firebase project (free)</h3>
+<ol>
+  <li>Go to <a href="https://console.firebase.google.com">console.firebase.google.com</a> → Add project.</li>
+  <li>Build → <strong>Realtime Database</strong> → Create (pick a region, e.g. Singapore <code>asia-southeast1</code>).</li>
+  <li>Build → <strong>Authentication</strong> → Sign-in method → enable <strong>Google</strong>.</li>
+  <li>Project settings → Your apps → Web app → copy the <code>firebaseConfig</code> object.</li>
+</ol>
+
+<h3>Step 3 — Config file</h3>
+<p>Create <code>src/config.js</code>: paste <code>FIREBASE_CONFIG</code>, set a <code>WEDDING_ID</code>, define the
+  <code>TABS</code> list and the <code>COLS</code> column definitions (see §10). Add
+  <code>cloudEnabled = !!FIREBASE_CONFIG.databaseURL</code> so the app runs local-only if you blank the URL.</p>
+
+<h3>Step 4 — Redux store + slices</h3>
+<ol>
+  <li><code>src/seed.js</code> — a <code>seed()</code> function returning the default data object.</li>
+  <li><code>src/slices/weddingSlice.js</code> — <code>createSlice</code> with the reducers in §6. Load initial state from localStorage, else seed.</li>
+  <li><code>src/slices/authSlice.js</code> — <code>{ user, status, error }</code>.</li>
+  <li><code>src/store.js</code> — <code>configureStore</code> combining both slices and adding the sync middleware.</li>
+</ol>
+
+<h3>Step 5 — The sync layer</h3>
+<ol>
+  <li><code>src/firebase.js</code> — init the Firebase app, auth, database (only if <code>cloudEnabled</code>).</li>
+  <li><code>src/cloud.js</code> — <code>initCloud</code>, <code>subscribe</code> (onValue → <code>replaceAll</code>),
+    <code>scheduleCloudPush</code> (debounced), <code>signIn</code>/<code>logOut</code>, plus the
+    <code>applyingRemote</code> echo-guard.</li>
+  <li><code>src/syncMiddleware.js</code> — after each <code>wedding/*</code> action: <code>persistLocal</code> +
+    (if not applying remote) <code>scheduleCloudPush</code>.</li>
+</ol>
+
+<h3>Step 6 — Components</h3>
+<ol>
+  <li><code>DataTable.jsx</code> — generic editable table driven by a <code>cols</code> prop; dispatches
+    <code>setCell</code>/<code>addRow</code>/<code>delRow</code>.</li>
+  <li><code>Checklist.jsx</code> — generic tick-list.</li>
+  <li><code>Header.jsx</code>, <code>Nav.jsx</code> (centered tabs), <code>AuthGate.jsx</code> (Google sign-in screen),
+    <code>Cards.jsx</code> (summary cards).</li>
+  <li><code>components/tabs/*</code> — one small component per tab, mostly wrapping <code>DataTable</code> or
+    <code>Checklist</code> with the right <code>tableKey</code>.</li>
+  <li><code>selectors.js</code> — <code>budgetRollup</code>, <code>sectionStats</code>, <code>sumCol</code> for the derived numbers.</li>
+</ol>
+
+<h3>Step 7 — Wire it up</h3>
+<p><code>src/main.jsx</code>: call <code>initCloud(store)</code>, then render
+  <code>&lt;Provider store={store}&gt;&lt;App/&gt;&lt;/Provider&gt;</code>. <code>App.jsx</code> shows the
+  <code>AuthGate</code> when cloud is on and nobody's signed in, otherwise Header + Nav + the active tab.</p>
+
+<h3>Step 8 — Run it</h3>
+<pre><code>npm run dev      # http://localhost:5173
+npm run build    # outputs dist/
+npm run preview  # preview the built bundle</code></pre>
+
+<h3>Step 9 — Lock the database</h3>
+<p>Sign in with both real Google accounts once (so Firebase creates their UIDs). Grab each UID from Firebase Auth →
+  Users. Then set Realtime Database → Rules to the two-UID rule shown in §8. Publish.</p>
+
+<h3>Step 10 — Deploy to GitHub Pages</h3>
+<ol>
+  <li>Push the repo to GitHub.</li>
+  <li>Add <code>.github/workflows/deploy.yml</code> (build Vite → upload <code>dist/</code> → deploy-pages).</li>
+  <li>Repo Settings → Pages → Source: <strong>GitHub Actions</strong>.</li>
+  <li>In Firebase Auth → Settings → Authorized domains, add your <code>username.github.io</code> domain.</li>
+  <li>Push → the workflow builds and publishes. (If Actions is unavailable, use the manual <code>gh-pages</code> fallback in §12, Path B.)</li>
+</ol>
+
+<!-- ============================================ -->
+<h2 id="addtab">14 · How to add a new tab (worked example)</h2>
+<p>Say you want a "Honeymoon" cost table. The config-driven design means this is four small edits, no new UI logic:</p>
+<ol>
+  <li><strong>config.js</strong> — add <code>['honeymoon', 'Honeymoon']</code> to <code>TABS</code>, and a
+    <code>honeymoon:</code> entry under <code>COLS</code> with your columns.</li>
+  <li><strong>seed.js</strong> — add <code>honeymoon: []</code> (or some starter rows) to the seed object.</li>
+  <li><strong>weddingSlice.js</strong> — nothing to change; the generic reducers already handle any table key.</li>
+  <li><strong>components/tabs/Honeymoon.jsx</strong> — a 6-line component rendering
+    <code>&lt;DataTable tableKey="honeymoon" cols={COLS.honeymoon} /&gt;</code>, then register it in
+    <code>App.jsx</code>'s tab map.</li>
+</ol>
+<p>That's the payoff of the generic table + config-as-data approach: new sections are declarative.</p>
+
+<hr>
+<p class="small">Generated as a project report for the Pineapple Lover wedding dashboard. For the exhaustive,
+  concept-by-concept build walkthrough, see <code>TUTORIAL.md</code> in the repo. Tip: to save this as a PDF, open it
+  in a browser and use Print → Save as PDF (the layout is print-friendly).</p>
+
+</div>
+</body>
+</html>
