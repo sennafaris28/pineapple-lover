@@ -131,13 +131,16 @@
 <p>The app is a single page with a centered row of tabs. You click a tab, that section shows. Here's what each does:</p>
 
 <h4>1. Overview</h4>
-<p>The landing screen. Shows the couple's names, the wedding date, a live countdown ("X days to go"), and summary cards
-  pulling totals from the rest of the app (total budget, how much is allocated, guest count, etc.). Read-at-a-glance.</p>
+<p>The landing screen. Shows the couple's names, the wedding date (entered as <code>dd/mm/yyyy</code>), a live countdown
+  ("X days to go"), and summary cards pulling totals from the rest of the app (budget, remaining, guest pax, milestones
+  done). Read-at-a-glance.</p>
 
 <h4>2. Budget</h4>
-<p><strong>Read-only roll-up.</strong> You don't type numbers here — it <em>derives</em> them. It adds up what the
-  Ceremony, Seserahan and Mahar tabs cost and shows you: total budget vs. allocated vs. remaining, plus a breakdown
-  table by category. Change a price anywhere else and this updates itself.</p>
+<p><strong>Deductive budget.</strong> You set <em>one</em> number — your total budget — and every cost you enter on the
+  Ceremony, Seserahan and Mahar tabs is <em>deducted</em> from it. A ledger shows <code>Budget set − each section =
+  Remaining</code>, where Remaining updates live and turns red (with an "over budget!" note) if you blow past the
+  total. A per-section detail table (allocated / paid / outstanding) sits below. The only thing you type here is the
+  budget total; the rest is derived.</p>
 
 <h4>3. Wedding Ceremony</h4>
 <p>An itemized cost table — venue (gedung), catering, MUA (makeup), decor, WO (wedding organizer), etc. Columns:
@@ -151,7 +154,16 @@
 <p>The dowry items — again the same itemized table. Tracks things like the mahar money, gold, prayer set, etc.</p>
 
 <h4>6. Guests</h4>
-<p>Guest list table: Name, Side (Groom/Bride), Category (Family/Friends/Work/VIP), Invited #, RSVP status, Table assignment.</p>
+<p>Guest list table: Guest Name, Side (Groom/Bride/Both), Bringing +1?, +1 Name, RSVP (Confirmed/Pending/Declined/blank),
+  Notes, and <strong>Pax</strong> — the real headcount for that invitation. Pax matters because an invitation can be a
+  whole household (more than 2 people), so it's entered per row rather than computed from the +1 flag.</p>
+<p><strong>Excel import.</strong> An <em>"Import from Excel (.xlsx)"</em> button reads a <code>Guest List</code> sheet,
+  maps its columns by header name, and loads everyone (replacing the current list after a confirm). The parser is
+  <a href="https://sheetjs.com">SheetJS</a>, <strong>lazy-loaded</strong> — it only downloads the ~429 KB library when
+  you actually click import, so it never weighs down normal page loads.</p>
+<p><strong>Live counters</strong> above the table mirror the spreadsheet's Summary block: Invites sent, Total pax,
+  RSVP breakdown (Confirmed / Pending / Declined / No reply), and attending headcount by side (Bride / Groom / Both).
+  They recompute instantly as you edit.</p>
 
 <h4>7. Vendors</h4>
 <p>Vendor tracker: Category, Vendor, Contact, Quote, DP (down payment) paid, Booked?, Notes. Keeps the money and the
@@ -174,8 +186,8 @@
   (wipe and start fresh, with a confirm prompt).</p>
 
 <div class="note">Three of the tabs (Adat, Legal, parts of Overview) are <em>checklists</em>; six (Ceremony, Seserahan, Mahar,
-  Guests, Vendors, Rundown) are <em>editable tables</em>; Budget is a <em>derived read-only roll-up</em>. That's the
-  whole functional surface.</div>
+  Guests, Vendors, Rundown) are <em>editable tables</em> (Guests adds counters + Excel import on top); Budget is a
+  <em>deductive ledger</em> fed from the itemized tabs. That's the whole functional surface.</div>
 
 <!-- ============================================ -->
 <h2 id="how-two">3 · How two people use it together</h2>
@@ -201,8 +213,12 @@
   <tr><td>Cloud database</td><td>Firebase Realtime Database</td><td>Dead-simple live sync between two clients; generous free tier.</td></tr>
   <tr><td>Auth</td><td>Firebase Auth — Google sign-in only</td><td>No passwords to manage; free; OAuth via Google.</td></tr>
   <tr><td>Offline cache</td><td>Browser <code>localStorage</code></td><td>Instant load + works offline.</td></tr>
+  <tr><td>Excel import</td><td>SheetJS (<code>xlsx</code>)</td><td>Parses the guest <code>.xlsx</code> in-browser. Lazy-loaded (dynamic <code>import()</code>) so it ships as its own chunk, not in the main bundle.</td></tr>
   <tr><td>Hosting</td><td>GitHub Pages</td><td>Free static hosting on a <code>github.io</code> URL.</td></tr>
 </table>
+<p>The UI uses a <strong>fixed dark theme</strong> (background <code>#161a1f</code>, accent <code>#1e88e5</code>). It
+  deliberately does <em>not</em> follow the device's light/dark setting — the old <code>prefers-color-scheme</code>
+  rule was removed and <code>color-scheme: dark</code> pins it.</p>
 <p>The built app is a pile of static files (HTML + one JS bundle + one CSS file). There is <strong>no backend
   server</strong> you run — Firebase is the only "server," and it's managed by Google.</p>
 
@@ -248,12 +264,12 @@
 <pre><code>{
   p1, p2,            // partner names
   wdate,             // wedding date
-  totalBudget,       // the budget ceiling
+  totalBudget,       // the total you set; costs deduct from it
   mahar, timeline,   // misc fields
   ceremony:   [ [item, qty, unitPrice, vendor, paid, notes, link], ... ],
   seserahan:  [ ...same row shape... ],
   maharkawin: [ ...same row shape... ],
-  guests:     [ [name, side, category, invited, rsvp, table], ... ],
+  guests:     [ [name, side, plusOne, plusName, rsvp, notes, pax], ... ],
   vendors:    [ [category, vendor, contact, quote, dp, booked, notes], ... ],
   rundown:    [ [time, event, pic], ... ],
   adat:       [ {text, done}, ... ],   // checklists
@@ -265,6 +281,7 @@
   <tr><td><code>setField</code></td><td>Set a top-level field (names, date, budget).</td></tr>
   <tr><td><code>setCell</code></td><td>Set one cell in one row of one table.</td></tr>
   <tr><td><code>addRow</code> / <code>delRow</code></td><td>Add / remove a row in any table.</td></tr>
+  <tr><td><code>setTable</code></td><td>Replace every row of one table — used by the Guest List Excel import.</td></tr>
   <tr><td><code>toggleCheck</code> / <code>addCheck</code> / <code>delCheck</code></td><td>Checklist operations (Adat, Legal).</td></tr>
   <tr><td><code>replaceAll</code></td><td>Swap the whole dataset — used by cloud sync and JSON import.</td></tr>
   <tr><td><code>resetAll</code></td><td>Wipe back to the seed defaults.</td></tr>
@@ -273,8 +290,9 @@
 <p>Holds <code>{ user, status, error }</code>. <code>status</code> is <code>connecting</code> / <code>local</code> /
   signed-in. The UI uses this to decide whether to show the Google sign-in gate or the dashboard.</p>
 <div class="note"><strong>Derived numbers aren't stored</strong> — they're computed on the fly by <em>selectors</em>
-  (<code>selectors.js</code>): <code>budgetRollup()</code>, <code>sectionStats()</code>, <code>sumCol()</code>.
-  That's why the Budget tab is always correct without anyone "recalculating" it.</p>
+  (<code>selectors.js</code>): <code>budgetRollup()</code>, <code>sectionStats()</code>, <code>guestStats()</code>,
+  <code>sumCol()</code>. That's why the Budget deductions and the guest counters are always correct without anyone
+  "recalculating" them.</p>
 
 <!-- ============================================ -->
 <h2 id="sync">7 · The cloud-sync layer</h2>
@@ -356,13 +374,17 @@
 <table>
   <tr><th>Table</th><th>Columns (in order)</th></tr>
   <tr><td>ceremony / seserahan / maharkawin</td><td>Item · Qty · Unit price · Vendor · Paid(or Bought) · Notes · Marketplace link</td></tr>
-  <tr><td>guests</td><td>Name · Side · Category · Invited # · RSVP · Table</td></tr>
+  <tr><td>guests</td><td>Guest Name · Side · Bringing +1? · +1 Name · RSVP · Notes · Pax</td></tr>
   <tr><td>vendors</td><td>Category · Vendor · Contact · Quote · DP paid · Booked · Notes</td></tr>
   <tr><td>rundown</td><td>Time · Event (acara) · PIC</td></tr>
   <tr><td>adat / legal</td><td>Objects: <code>{ text, done }</code></td></tr>
 </table>
 <p>Each column has a <code>type</code> (<code>text</code> / <code>num</code> / <code>select</code> / <code>link</code>)
   that tells <code>DataTable</code> how to render that cell's input.</p>
+<p><strong>Dates:</strong> <code>wdate</code> is stored internally as ISO (<code>yyyy-mm-dd</code>) so countdown math stays
+  simple, but it's entered and displayed as <code>dd/mm/yyyy</code>. <code>utils.js</code> has <code>isoToDmy()</code> /
+  <code>dmyToIso()</code> for the conversion, and the header's date field only commits a value once it's a complete,
+  valid date.</p>
 
 <!-- ============================================ -->
 <h2 id="security">11 · Security &amp; cost notes</h2>
@@ -414,7 +436,8 @@ git push https://github.com/sennafaris28/pineapple-lover.git gh-pages --force</c
 <pre><code>npm create vite@latest pineapple-lover -- --template react
 cd pineapple-lover
 npm install
-npm install @reduxjs/toolkit react-redux firebase</code></pre>
+npm install @reduxjs/toolkit react-redux firebase
+npm install xlsx          # SheetJS — for the guest-list Excel import</code></pre>
 <p>Then in <code>vite.config.js</code> set <code>base: './'</code> so assets resolve under the Pages sub-path.</p>
 
 <h3>Step 2 — Create a Firebase project (free)</h3>
@@ -456,14 +479,36 @@ npm install @reduxjs/toolkit react-redux firebase</code></pre>
   <li><code>Header.jsx</code>, <code>Nav.jsx</code> (centered tabs), <code>AuthGate.jsx</code> (Google sign-in screen),
     <code>Cards.jsx</code> (summary cards).</li>
   <li><code>components/tabs/*</code> — one small component per tab, mostly wrapping <code>DataTable</code> or
-    <code>Checklist</code> with the right <code>tableKey</code>.</li>
-  <li><code>selectors.js</code> — <code>budgetRollup</code>, <code>sectionStats</code>, <code>sumCol</code> for the derived numbers.</li>
+    <code>Checklist</code> with the right <code>tableKey</code>. <code>Budget.jsx</code> is the deductive ledger;
+    <code>Guests.jsx</code> is a richer tab that adds the counter cards and the Excel-import button on top of its table.</li>
+  <li><code>selectors.js</code> — <code>budgetRollup</code>, <code>sectionStats</code>, <code>guestStats</code>,
+    <code>sumCol</code> for the derived numbers.</li>
+  <li><code>utils.js</code> — <code>rp()</code> (Rupiah), <code>countdownText()</code>, and
+    <code>isoToDmy()</code> / <code>dmyToIso()</code> for the <code>dd/mm/yyyy</code> date field.</li>
 </ol>
 
 <h3>Step 7 — Wire it up</h3>
 <p><code>src/main.jsx</code>: call <code>initCloud(store)</code>, then render
   <code>&lt;Provider store={store}&gt;&lt;App/&gt;&lt;/Provider&gt;</code>. <code>App.jsx</code> shows the
   <code>AuthGate</code> when cloud is on and nobody's signed in, otherwise Header + Nav + the active tab.</p>
+
+<h3>Step 7b — The three feature recipes</h3>
+<ul>
+  <li><strong>Deductive budget</strong> — make <code>totalBudget</code> an editable field on the Budget tab; render a
+    ledger of <code>Budget set − each section total = Remaining</code> using <code>budgetRollup()</code>; colour
+    Remaining red when it goes negative.</li>
+  <li><strong>Guest Excel import</strong> — add a <code>setTable</code> reducer that replaces one table's rows. In the
+    Guests tab, a hidden file input + button; on change, <code>const XLSX = await import('xlsx')</code> (dynamic, so it
+    code-splits), <code>XLSX.read(await file.arrayBuffer())</code>, pick the sheet whose name matches
+    <code>/guest/i</code>, <code>sheet_to_json(ws, {header:1})</code>, find the header row, map columns by header text to
+    <code>[name, side, plusOne, plusName, rsvp, notes, pax]</code>, confirm, then <code>dispatch(setTable(...))</code>.
+    Add <code>guestStats()</code> in <code>selectors.js</code> to drive the counter cards.</li>
+  <li><strong>dd/mm/yyyy dates</strong> — store ISO internally; a small <code>DateInput</code> shows
+    <code>isoToDmy(value)</code> and commits <code>dmyToIso(text)</code> only when it parses to a valid date.</li>
+  <li><strong>Fixed dark theme</strong> — in <code>styles.css</code> set the palette on <code>:root</code> with
+    <code>color-scheme: dark</code> and <em>no</em> <code>@media (prefers-color-scheme)</code> block, so it never adapts
+    to the device setting.</li>
+</ul>
 
 <h3>Step 8 — Run it</h3>
 <pre><code>npm run dev      # http://localhost:5173
