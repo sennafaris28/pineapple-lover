@@ -35,3 +35,23 @@ export function budgetRollup(w) {
 
 // Sum a numeric column across rows (used by Guests / Vendors).
 export const sumCol = (rows, ci) => (rows || []).reduce((a, r) => a + (Number(r[ci]) || 0), 0);
+
+// Guest counters — mirrors the Summary block of the imported Guest List sheet.
+// Row shape: [name, side, plusOne, plusName, rsvp, notes, pax].
+export function guestStats(rows) {
+  rows = (rows || []).filter((r) => String(r[0] || '').trim());
+  const pax = (r) => Number(r[6]) || 0;
+  const byRsvp = (v) => rows.filter((r) => r[4] === v).length;
+  const paxOf = (side) => rows.filter((r) => r[1] === side).reduce((a, r) => a + pax(r), 0);
+  return {
+    invites: rows.length,                                  // undangan terkirim
+    pax: rows.reduce((a, r) => a + pax(r), 0),             // total pax realistis
+    confirmed: byRsvp('Confirmed'),
+    pending: byRsvp('Pending'),
+    declined: byRsvp('Declined'),
+    noReply: rows.filter((r) => !String(r[4] || '').trim()).length,
+    bride: paxOf('Bride'),
+    groom: paxOf('Groom'),
+    both: paxOf('Both'),
+  };
+}

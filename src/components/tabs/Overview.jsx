@@ -1,14 +1,15 @@
 import { useSelector } from 'react-redux';
 import Cards from '../Cards';
 import Checklist from '../Checklist';
-import { budgetRollup } from '../../selectors';
+import { budgetRollup, guestStats } from '../../selectors';
 import { rp } from '../../utils';
 
 export default function Overview() {
   const w = useSelector((s) => s.wedding);
   const done = w.timeline.filter((x) => x.d).length;
   const roll = budgetRollup(w);
-  const invited = w.guests.reduce((a, r) => a + (Number(r[3]) || 0), 0);
+  const g = guestStats(w.guests);
+  const remaining = roll.target - roll.allocated;
 
   return (
     <section>
@@ -18,8 +19,8 @@ export default function Overview() {
         items={[
           ['Milestones done', `${done} / ${w.timeline.length}`],
           ['Budget', rp(roll.target)],
-          ['Allocated', rp(roll.allocated)],
-          ['Guests invited', String(invited)],
+          ['Remaining', rp(remaining)],
+          ['Guests (pax)', String(g.pax)],
         ]}
       />
       <Checklist listKey="timeline" showAdd={false} />

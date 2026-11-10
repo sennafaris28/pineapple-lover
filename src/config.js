@@ -52,13 +52,17 @@ export const COLS = {
   ceremony: itemCols('Paid'),
   seserahan: itemCols('Bought'),
   maharkawin: itemCols('Bought'),
+  // Matches the imported Guest List sheet. Pax = real headcount for that invitation
+  // (a household can be >2), which the counters sum — so set it per row.
+  // Row: [name, side, plusOne, plusName, rsvp, notes, pax]
   guests: [
-    { h: 'Name', type: 'text' },
-    { h: 'Side', type: 'select', opts: ['Groom', 'Bride'] },
-    { h: 'Category', type: 'select', opts: ['Family', 'Friends', 'Work', 'VIP'] },
-    { h: 'Invited #', type: 'num' },
-    { h: 'RSVP', type: 'select', opts: ['Pending', 'Yes', 'No'] },
-    { h: 'Table', type: 'text' },
+    { h: 'Guest Name', type: 'text' },
+    { h: 'Side', type: 'select', opts: ['', 'Groom', 'Bride', 'Both'] },
+    { h: 'Bringing +1?', type: 'select', opts: ['No', 'Yes'] },
+    { h: '+1 Name', type: 'text' },
+    { h: 'RSVP', type: 'select', opts: ['', 'Pending', 'Confirmed', 'Declined'] },
+    { h: 'Notes', type: 'text' },
+    { h: 'Pax', type: 'num' },
   ],
   vendors: [
     { h: 'Category', type: 'text' },

@@ -41,6 +41,10 @@ const weddingSlice = createSlice({
     delRow: (state, { payload: { table, row } }) => {
       state[table].splice(row, 1);
     },
+    // Replace every row of one table (used by the Guest List Excel import).
+    setTable: (state, { payload: { table, rows } }) => {
+      state[table] = rows;
+    },
     // Checklist items (timeline / adat / legal) are {t, d, n?} objects.
     toggleCheck: (state, { payload: { list, index, done } }) => {
       state[list][index].d = done;
@@ -59,7 +63,7 @@ const weddingSlice = createSlice({
 });
 
 export const {
-  setField, setCell, addRow, delRow,
+  setField, setCell, addRow, delRow, setTable,
   toggleCheck, addCheck, delCheck,
   replaceAll, resetAll,
 } = weddingSlice.actions;

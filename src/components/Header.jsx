@@ -1,6 +1,34 @@
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setField } from '../slices/weddingSlice';
-import { countdownText, STATUS_LABELS } from '../utils';
+import { countdownText, STATUS_LABELS, isoToDmy, dmyToIso } from '../utils';
+
+// dd/mm/yyyy text field. Stores ISO internally, commits only when the typed
+// value is a complete valid date (or cleared), so partial typing isn't lost.
+function DateInput({ value, onCommit }) {
+  const [text, setText] = useState(isoToDmy(value));
+  useEffect(() => { setText(isoToDmy(value)); }, [value]);
+
+  const handle = (e) => {
+    const t = e.target.value;
+    setText(t);
+    const iso = dmyToIso(t);
+    if (iso) onCommit(iso);
+    else if (t.trim() === '') onCommit('');
+  };
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      placeholder="dd/mm/yyyy"
+      maxLength={10}
+      style={{ width: '130px', display: 'inline-block' }}
+      value={text}
+      onChange={handle}
+    />
+  );
+}
 
 export default function Header() {
   const dispatch = useDispatch();
@@ -19,11 +47,9 @@ export default function Header() {
       <div className="date-row">
         <label>
           Wedding date:{' '}
-          <input
-            type="date"
-            style={{ width: 'auto', display: 'inline-block' }}
+          <DateInput
             value={wdate}
-            onChange={set('wdate')}
+            onCommit={(iso) => dispatch(setField({ field: 'wdate', value: iso }))}
           />
         </label>
         <span className="countdown">{countdownText(wdate)}</span>

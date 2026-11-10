@@ -8,33 +8,60 @@ export default function Budget() {
   const dispatch = useDispatch();
   const w = useSelector((s) => s.wedding);
   const roll = budgetRollup(w);
-  const left = roll.target ? roll.target - roll.allocated : roll.allocated - roll.paid;
+  const remaining = roll.target - roll.allocated;
+  const over = remaining < 0;
+  const remColor = over ? 'var(--warn)' : 'var(--ok)';
 
   return (
     <section>
       <h2>Budget (IDR)</h2>
       <p className="sub">
-        Total allocation rolled up from the Wedding Ceremony, Seserahan and Mahar tabs. Add or edit
-        items on those tabs — this view is read-only.
+        Set your total budget — every cost you add on the Wedding Ceremony, Seserahan and Mahar tabs is
+        <strong> deducted</strong> from it, and what's left updates live.
       </p>
-      <Cards
-        items={[
-          ['Total budget', rp(roll.target)],
-          ['Allocated', rp(roll.allocated)],
-          ['Paid', rp(roll.paid)],
-          [roll.target ? 'Budget left' : 'Outstanding', rp(left)],
-        ]}
-      />
+
       <label className="field narrow">
-        Total budget / target (Rp)
+        Total budget you're working with (Rp)
         <input
           type="number"
-          placeholder="0"
+          placeholder="e.g. 150000000"
           value={w.totalBudget}
           onChange={(e) => dispatch(setField({ field: 'totalBudget', value: e.target.value }))}
         />
       </label>
+
+      <Cards
+        items={[
+          ['Budget set', rp(roll.target)],
+          ['Deducted (allocated)', rp(roll.allocated)],
+          ['Paid so far', rp(roll.paid)],
+        ]}
+      />
+
+      {/* The deductive ledger: budget minus each section = remaining. */}
       <div className="panel">
+        <table>
+          <tbody>
+            <tr style={{ fontWeight: 600 }}>
+              <td>Budget set</td>
+              <td className="num">{rp(roll.target)}</td>
+            </tr>
+            {roll.sections.map(([name, s]) => (
+              <tr key={name}>
+                <td style={{ color: 'var(--muted)' }}>− {name}</td>
+                <td className="num" style={{ color: 'var(--muted)' }}>{rp(s.total)}</td>
+              </tr>
+            ))}
+            <tr style={{ fontWeight: 700, borderTop: '2px solid var(--line)' }}>
+              <td>= Remaining{over ? ' (over budget!)' : ''}</td>
+              <td className="num" style={{ color: remColor }}>{rp(remaining)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Per-section detail. */}
+      <div className="panel" style={{ marginTop: 16 }}>
         <table>
           <thead>
             <tr>

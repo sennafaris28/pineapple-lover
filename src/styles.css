@@ -1,12 +1,8 @@
+/* Fixed dark theme — intentionally does NOT adapt to the device light/dark setting. */
 :root {
-  --bg:#faf7f5; --panel:#fff; --ink:#2a2420; --muted:#8a7f78; --line:#ebe3dd;
-  --accent:#b5835a; --accent-soft:#f3e7db; --warn:#c2674b; --chip:#f0ebe7;
-}
-@media (prefers-color-scheme:dark) {
-  :root {
-    --bg:#1b1815; --panel:#262220; --ink:#ece6e1; --muted:#a89d94; --line:#3a332e;
-    --accent:#cd9b6f; --accent-soft:#352c24; --warn:#e08a6d; --chip:#322b26;
-  }
+  color-scheme: dark;
+  --bg:#161a1f; --panel:#1d232b; --ink:#e6edf3; --muted:#9aa7b4; --line:#2a313b;
+  --accent:#1e88e5; --accent-soft:#16304a; --warn:#e5534b; --ok:#3fb950; --chip:#232b34;
 }
 * { box-sizing:border-box; }
 body {
