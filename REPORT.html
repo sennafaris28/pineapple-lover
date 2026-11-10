@@ -221,35 +221,86 @@
 <!-- ============================================ -->
 <h2 id="dataflow">5 · How data flows (the big picture)</h2>
 <p>This is the mental model for the whole app. Read it once and everything else clicks:</p>
-<div class="panel flow">USER TYPES IN A CELL
-        │
-        ▼
-  dispatch(setCell(...))         ← a Redux "action" describing the change
-        │
-        ▼
-  weddingSlice reducer           ← updates the single source of truth (the store)
-        │
-        ├──────────────► React re-renders any component that reads that data
-        │                (Budget roll-up, Overview cards, the table — all at once)
-        │
-        ▼
-  syncMiddleware (runs after every wedding/* action)
-        │
-        ├──► persistLocal(state)        → saves to localStorage (offline cache)
-        │
-        └──► scheduleCloudPush(state)   → debounced 400ms → writes to Firebase
-                                                    │
-                                                    ▼
-                                          FIREBASE REALTIME DB
-                                                    │
-                                                    ▼  (onValue listener)
-                                          THE OTHER PERSON'S BROWSER
-                                                    │
-                                                    ▼
-                                          dispatch(replaceAll(remoteData))
-                                                    │
-                                                    ▼
-                                          their store updates → their UI re-renders</div>
+<div class="panel">
+  <svg viewBox="0 0 740 836" width="100%" role="img" aria-label="Data flow diagram: a cell edit dispatches a Redux action to the weddingSlice reducer, which re-renders React components and triggers the sync middleware; the middleware saves to localStorage and pushes to Firebase, which the other person's browser receives and applies, re-rendering their UI." style="max-width:720px; display:block; margin:0 auto; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <defs>
+      <marker id="fcArrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+        <path d="M0,0 L7,3 L0,6 Z" fill="var(--accent)"/>
+      </marker>
+    </defs>
+
+    <!-- vertical spine arrows -->
+    <g stroke="var(--accent)" stroke-width="2" marker-end="url(#fcArrow)" fill="none">
+      <line x1="250" y1="78"  x2="250" y2="110"/>
+      <line x1="250" y1="170" x2="250" y2="202"/>
+      <line x1="250" y1="262" x2="250" y2="294"/>
+      <line x1="250" y1="354" x2="250" y2="386"/>
+      <line x1="250" y1="446" x2="250" y2="478"/>
+      <line x1="250" y1="538" x2="250" y2="570"/>
+      <line x1="250" y1="630" x2="250" y2="662"/>
+      <line x1="250" y1="722" x2="250" y2="754"/>
+      <!-- branch arrows to the right -->
+      <line x1="400" y1="233" x2="428" y2="233"/>
+      <line x1="400" y1="325" x2="428" y2="325"/>
+    </g>
+
+    <!-- boxes: title (y=top+25) + subtitle (y=top+43); spine centred x=250, side x=575 -->
+    <g text-anchor="middle">
+      <!-- R1 -->
+      <rect x="100" y="20" width="300" height="58" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="250" y="45" fill="var(--ink)" font-size="14" font-weight="700">✏️  User edits a cell</text>
+      <text x="250" y="63" fill="var(--muted)" font-size="11">types in a table, or picks the date</text>
+
+      <!-- R2 -->
+      <rect x="100" y="112" width="300" height="58" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="250" y="137" fill="var(--ink)" font-size="14" font-weight="700">dispatch( action )</text>
+      <text x="250" y="155" fill="var(--muted)" font-size="11">setCell · addRow · setTable · toggleCheck</text>
+
+      <!-- R3 store (highlight) + side: React re-render -->
+      <rect x="100" y="204" width="300" height="58" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="250" y="229" fill="var(--ink)" font-size="14" font-weight="700">weddingSlice reducer</text>
+      <text x="250" y="247" fill="var(--muted)" font-size="11">updates the one store — source of truth</text>
+
+      <rect x="430" y="204" width="290" height="58" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="575" y="229" fill="var(--ink)" font-size="14" font-weight="700">React re-renders</text>
+      <text x="575" y="247" fill="var(--muted)" font-size="11">every component reading that data</text>
+
+      <!-- R4 middleware + side: persistLocal -->
+      <rect x="100" y="296" width="300" height="58" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="250" y="321" fill="var(--ink)" font-size="14" font-weight="700">syncMiddleware</text>
+      <text x="250" y="339" fill="var(--muted)" font-size="11">runs after every wedding/* action</text>
+
+      <rect x="430" y="296" width="290" height="58" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="575" y="321" fill="var(--ink)" font-size="14" font-weight="700">persistLocal()</text>
+      <text x="575" y="339" fill="var(--muted)" font-size="11">→ localStorage (offline cache)</text>
+
+      <!-- R5 -->
+      <rect x="100" y="388" width="300" height="58" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="250" y="413" fill="var(--ink)" font-size="14" font-weight="700">scheduleCloudPush()</text>
+      <text x="250" y="431" fill="var(--muted)" font-size="11">debounced ~400 ms</text>
+
+      <!-- R6 Firebase (highlight) -->
+      <rect x="100" y="480" width="300" height="58" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="250" y="505" fill="var(--ink)" font-size="14" font-weight="700">☁  Firebase Realtime DB</text>
+      <text x="250" y="523" fill="var(--muted)" font-size="11">the shared cloud copy</text>
+
+      <!-- R7 -->
+      <rect x="100" y="572" width="300" height="58" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="250" y="597" fill="var(--ink)" font-size="14" font-weight="700">The other person's browser</text>
+      <text x="250" y="615" fill="var(--muted)" font-size="11">onValue listener fires</text>
+
+      <!-- R8 -->
+      <rect x="100" y="664" width="300" height="58" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="250" y="689" fill="var(--ink)" font-size="14" font-weight="700">dispatch( replaceAll )</text>
+      <text x="250" y="707" fill="var(--muted)" font-size="11">remote data → their store</text>
+
+      <!-- R9 -->
+      <rect x="100" y="756" width="300" height="58" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="250" y="781" fill="var(--ink)" font-size="14" font-weight="700">Their UI re-renders</text>
+      <text x="250" y="799" fill="var(--muted)" font-size="11">both screens now match</text>
+    </g>
+  </svg>
+</div>
 <p>The key idea: <strong>components never talk to each other or to Firebase directly.</strong> They only read from the
   store and dispatch actions. Everything else (saving, syncing, deriving totals) hangs off that one pipe.</p>
 
