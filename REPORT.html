@@ -5,18 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pineapple Lover — Wedding Dashboard · Technical &amp; Functional Report</title>
 <style>
+  /* Johnny's standard palette: bg #161a1f, surface #212427, elevated #414a4c, accent #1e88e5.
+     Fixed dark — intentionally does NOT follow the device light/dark setting. */
   :root{
-    --bg:#faf7f5; --panel:#fff; --ink:#2a2420; --muted:#6f655e; --line:#e7ded7;
-    --accent:#b5835a; --accent-soft:#f5ebe0; --warn:#c2674b; --ok:#4c8a5f;
-    --code-bg:#2b2724; --code-ink:#f0e9e2; --chip:#f0ebe7;
+    color-scheme:dark;
+    --bg:#161a1f; --panel:#212427; --ink:#e6edf3; --muted:#9aa7b4; --line:#414a4c;
+    --accent:#1e88e5; --accent-soft:#16304a; --warn:#e5534b; --ok:#3fb950;
+    --code-bg:#0f1317; --code-ink:#e6edf3; --chip:#414a4c;
     --maxw:860px;
-  }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --bg:#1b1815; --panel:#232019; --ink:#ece6e1; --muted:#a89d94; --line:#3a332e;
-      --accent:#cd9b6f; --accent-soft:#2e271f; --warn:#e08a6d; --ok:#79b98e;
-      --code-bg:#15120f; --code-ink:#ece6e1; --chip:#322b26;
-    }
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
