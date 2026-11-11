@@ -27,7 +27,7 @@ nav button {
 nav button.active { background:var(--accent-soft); color:var(--accent); }
 main { max-width:1536px; width:92%; margin:0 auto; padding:18px; }
 .item-table th:nth-child(1), .item-table td:nth-child(1) { min-width:240px; }
-.item-table th:nth-child(2), .item-table td:nth-child(2) { width:56px; }
+.item-table th:nth-child(2), .item-table td:nth-child(2) { width:70px; min-width:70px; }
 h2 { font-size:18px; margin:0 0 4px; }
 .sub { color:var(--muted); font-size:13px; margin:0 0 16px; }
 input, select, button { font-family:inherit; font-size:14px; color:var(--ink); }
@@ -36,8 +36,21 @@ input:focus, select:focus { outline:1px solid var(--accent); }
 table { width:100%; border-collapse:collapse; margin-top:6px; }
 th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:middle; }
 th { color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:.03em; }
-td input, td select { padding:5px 7px; }
+td input, td select { padding:6px 10px; }
 .num { text-align:right; font-variant-numeric:tabular-nums; }
+/* Editable data-table fields: size each column by its type so inputs aren't over-wide. */
+th.t-num, td.t-num { width:112px; }
+th.t-num { padding-right:19px; }          /* align the header with the right-padded value */
+th.t-select, td.t-select { width:1%; white-space:nowrap; }
+td.t-select select { min-width:104px; }
+th.t-link, td.t-link { width:220px; }
+th.t-text, td.t-text { min-width:120px; }
+th.t-text:first-child, td.t-text:first-child { min-width:170px; }
+th.t-del, td.t-del { width:44px; text-align:center; padding-left:0; padding-right:0; }
+/* Drop the native number spinners so right-aligned values don't shift on focus. */
+td.t-num input::-webkit-outer-spin-button,
+td.t-num input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+td.t-num input[type=number] { -moz-appearance:textfield; appearance:textfield; }
 .btn { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:8px 14px; cursor:pointer; font-weight:500; }
 .btn.ghost { background:transparent; border:1px solid var(--line); color:var(--ink); }
 .btn.sm { padding:5px 10px; font-size:13px; }

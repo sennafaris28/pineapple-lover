@@ -29,16 +29,16 @@ export default function DataTable({ tableKey, cols, addLabel = '+ Add row', item
         <thead>
           <tr>
             {cols.map((c, i) => (
-              <th key={i} className={c.type === 'num' ? 'num' : ''}>{c.h}</th>
+              <th key={i} className={`t-${c.type}${c.type === 'num' ? ' num' : ''}`}>{c.h}</th>
             ))}
-            <th></th>
+            <th className="t-del"></th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row, ri) => (
             <tr key={ri}>
               {cols.map((c, ci) => (
-                <td key={ci}>
+                <td key={ci} className={`t-${c.type}`}>
                   {c.type === 'select' ? (
                     <select value={row[ci] ?? c.opts[0]} onChange={(e) => change(ri, ci, e.target.value)}>
                       {c.opts.map((o) => (
@@ -65,7 +65,7 @@ export default function DataTable({ tableKey, cols, addLabel = '+ Add row', item
                   )}
                 </td>
               ))}
-              <td>
+              <td className="t-del">
                 <button className="del" title="Delete" onClick={() => dispatch(delRow({ table: tableKey, row: ri }))}>✕</button>
               </td>
             </tr>
